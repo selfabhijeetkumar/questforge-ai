@@ -9,6 +9,7 @@ import scholarshipRoutes from './routes/scholarshipRoutes.js'
 import documentRoutes from './routes/documentRoutes.js'
 import auditRoutes from './routes/auditRoutes.js'
 import aiRoutes from './routes/aiRoutes.js'
+import persistenceRoutes from './routes/persistenceRoutes.js'
 
 const app = express()
 
@@ -38,6 +39,7 @@ app.use('/api', scholarshipRoutes)
 app.use('/api', documentRoutes)
 app.use('/api', auditRoutes)
 app.use('/api', aiRoutes)
+app.use('/api', persistenceRoutes)
 
 // 404 handler for unmatched API routes
 app.use('/api/*', (req, res) => {

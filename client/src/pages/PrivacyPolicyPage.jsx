@@ -53,10 +53,22 @@ export function PrivacyPolicyPage() {
           </p>
         </SpatialCard>
 
-        <SpatialCard title="4. Student Rights and Control" className="space-y-2" cornerMarkers={false}>
+        <SpatialCard title="4. Student Rights, DPDP Principles and Data Retention" className="space-y-2" cornerMarkers={false}>
           <p>
-            You retain absolute ownership of all academic credentials, certificates, and files evaluated by this platform. You may delete uploaded documents or reset session records at any time through the student dashboard.
+            In alignment with the Digital Personal Data Protection (DPDP) principles:
           </p>
+          <ul className="list-disc list-inside space-y-1 font-mono text-[11px] text-slate-300">
+            <li><strong className="text-cyan-300">Data Minimization:</strong> Raw document files (PDFs, images) are parsed in volatile RAM and immediately freed. No raw identity scans are stored on disk.</li>
+            <li><strong className="text-cyan-300">Right to Access & Portability:</strong> Students can export a complete machine-readable JSON copy of their audit records from the Student Profile page.</li>
+            <li><strong className="text-cyan-300">Right to Erasure:</strong> Students can immediately purge in-memory session records or delete their cloud audit history via the Profile data controls.</li>
+          </ul>
+        </SpatialCard>
+
+        <SpatialCard title="5. Legal Review Notice" className="space-y-2" cornerMarkers={false}>
+          <div className="bg-navy-950/80 border border-slate-800 rounded-lg p-3 text-[11px] font-mono text-slate-400">
+            <strong className="text-amber-300 block mb-1">Pre-Launch Legal Notice:</strong>
+            This privacy policy describes the technical data flows and security boundaries of the QuestForge AI codebase. Prior to any commercial or official public launch on a production custom domain, this text must undergo institutional legal review by the sponsoring organization or course authority.
+          </div>
         </SpatialCard>
       </div>
     </div>

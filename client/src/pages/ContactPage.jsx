@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
-import { Mail, CheckCircle2, Send, MessageSquare, AlertCircle } from 'lucide-react'
+import { Mail, CheckCircle2, Send, MessageSquare, AlertCircle, RefreshCw, Database } from 'lucide-react'
 import { SpatialCard } from '../components/common/SpatialCard'
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
 export function ContactPage() {
   const [formData, setFormData] = useState({
@@ -9,10 +11,12 @@ export function ContactPage() {
     topic: 'Course Evaluation Inquiry',
     message: ''
   })
+  const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [responseMeta, setResponseMeta] = useState(null)
   const [error, setError] = useState(null)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError(null)
 
@@ -26,7 +30,28 @@ export function ContactPage() {
       return
     }
 
-    setSubmitted(true)
+    setSubmitting(true)
+
+    try {
+      const res = await fetch(`${API_BASE}/api/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+
+      const json = await res.json()
+
+      if (!res.ok) {
+        throw new Error(json.message || `Server responded with HTTP ${res.status}`)
+      }
+
+      setResponseMeta(json.data)
+      setSubmitted(true)
+    } catch (err) {
+      setError(err.message || 'Failed to submit inquiry to server. Ensure backend is running.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -77,16 +102,41 @@ export function ContactPage() {
         <div className="md:col-span-2">
           <SpatialCard title="Send Message" glow>
             {submitted ? (
-              <div className="py-8 text-center space-y-3">
+              <div className="py-8 text-center space-y-4">
                 <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-                <h3 className="text-base font-headline font-bold text-white">Message Logged Successfully</h3>
-                <p className="text-xs text-slate-300 max-w-sm mx-auto font-sans leading-relaxed">
-                  Thank you for your feedback. Your inquiry has been registered in the academic demonstration ledger.
-                </p>
+                <div className="space-y-1">
+                  <h3 className="text-base font-headline font-bold text-white">Inquiry Persisted Successfully</h3>
+                  <p className="text-xs text-slate-300 max-w-sm mx-auto font-sans leading-relaxed">
+                    Thank you. Your message has been formally received and registered in the QuestForge AI backend ledger.
+                  </p>
+                </div>
+
+                {responseMeta && (
+                  <div className="max-w-md mx-auto p-3.5 rounded-lg bg-navy-950 border border-cyan-500/30 text-left font-mono text-[11px] space-y-2">
+                    <div className="flex items-center justify-between text-cyan-400 font-semibold border-b border-slate-800 pb-1.5">
+                      <span className="flex items-center space-x-1.5">
+                        <Database className="w-3.5 h-3.5 text-cyan-400" />
+                        <span>Persistence Receipt</span>
+                      </span>
+                      <span className="text-slate-400 text-[10px]">{responseMeta.storage}</span>
+                    </div>
+                    <div className="space-y-1 text-slate-300">
+                      <div><strong className="text-slate-400">Record ID:</strong> <span className="text-emerald-400">{responseMeta.id}</span></div>
+                      <div><strong className="text-slate-400">Timestamp:</strong> <span>{new Date(responseMeta.timestamp).toLocaleString()}</span></div>
+                      <div className="pt-1 text-[10px] text-amber-300/80 leading-normal border-t border-slate-800/60">
+                        <strong>Notice:</strong> {responseMeta.emailNotice}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <button
                   type="button"
-                  onClick={() => setSubmitted(false)}
-                  className="px-4 py-2 rounded-lg text-xs font-mono bg-navy-950 border border-slate-700 text-white hover:border-cyan-400"
+                  onClick={() => {
+                    setSubmitted(false)
+                    setFormData({ name: '', email: '', topic: 'Course Evaluation Inquiry', message: '' })
+                  }}
+                  className="px-4 py-2 rounded-lg text-xs font-mono bg-navy-950 border border-slate-700 text-white hover:border-cyan-400 transition"
                 >
                   Send Another Inquiry
                 </button>
@@ -150,10 +200,20 @@ export function ContactPage() {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full inline-flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-headline font-semibold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(0,240,255,0.3)] transition-all"
+                    disabled={submitting}
+                    className="w-full inline-flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-navy-950 font-headline font-semibold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(0,240,255,0.3)] transition-all"
                   >
-                    <Send className="w-4 h-4" />
-                    <span>Submit Message</span>
+                    {submitting ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Transmitting to Server...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Submit Message</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>

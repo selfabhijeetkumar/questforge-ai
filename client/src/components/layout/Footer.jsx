@@ -56,6 +56,11 @@ export function Footer() {
                   Architecture & Scope
                 </Link>
               </li>
+              <li>
+                <Link to="/profile" className="text-slate-400 hover:text-cyan-400 transition-colors">
+                  Student Account & Privacy
+                </Link>
+              </li>
             </ul>
           </div>
 

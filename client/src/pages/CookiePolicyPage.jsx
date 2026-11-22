@@ -29,10 +29,15 @@ export function CookiePolicyPage() {
           </p>
         </SpatialCard>
 
-        <SpatialCard title="2. Local Storage and Session Storage" className="space-y-2" cornerMarkers={false}>
+        <SpatialCard title="2. Local Storage and Session Tokens" className="space-y-2" cornerMarkers={false}>
           <p>
-            The platform may use browser local storage or session storage strictly for operational preferences, such as preserving filter parameters or temporarily caching demonstration preset selections.
+            The platform uses client-side web storage exclusively for strictly functional application purposes:
           </p>
+          <ul className="list-disc list-inside space-y-1 font-mono text-[11px] text-slate-300">
+            <li><strong className="text-cyan-300">Supabase Auth Session Token:</strong> When user accounts are enabled, authentication tokens (<code className="text-slate-200">sb-*-auth-token</code>) are stored in browser local storage to maintain your authenticated session.</li>
+            <li><strong className="text-cyan-300">Application Preferences:</strong> Browser local storage preserves functional preferences such as your active 3D cursor setting and filter states.</li>
+            <li><strong className="text-cyan-300">Demonstration Session Ledger:</strong> In unconfigured demonstration mode, uploaded document metadata exists only in volatile memory during the browser session.</li>
+          </ul>
         </SpatialCard>
 
         <SpatialCard title="3. Managing Local Data" className="space-y-2" cornerMarkers={false}>

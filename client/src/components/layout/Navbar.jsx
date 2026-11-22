@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { Compass, UploadCloud, LayoutDashboard, Menu, X, Info, Cpu, ArrowUpRight } from 'lucide-react'
+import { Compass, UploadCloud, LayoutDashboard, Menu, X, Info, Cpu, ArrowUpRight, User, LogIn } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const location = useLocation()
+  const { user } = useAuth()
 
   const navItems = [
     { name: 'Scholarship Explorer', path: '/scholarships', icon: Compass },
@@ -69,6 +71,24 @@ export function Navbar() {
               <span className="text-[11px] font-mono text-slate-300">AI Status</span>
             </Link>
 
+            {user ? (
+              <Link
+                to="/profile"
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-mono text-cyan-300 hover:text-white bg-navy-900 border border-cyan-500/30 hover:border-cyan-400 transition"
+              >
+                <User className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="truncate max-w-[100px]">{user.user_metadata?.full_name?.split(' ')[0] || 'Profile'}</span>
+              </Link>
+            ) : (
+              <Link
+                to="/login"
+                className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-mono text-slate-300 hover:text-white hover:bg-navy-800 border border-slate-800 hover:border-slate-700 transition"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Sign In</span>
+              </Link>
+            )}
+
             <Link
               to="/upload"
               className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-lg text-xs font-headline font-semibold uppercase tracking-wider bg-cyan-500 hover:bg-cyan-400 text-navy-950 shadow-[0_0_20px_rgba(0,240,255,0.35)] transition-all transform hover:-translate-y-0.5 active:translate-y-0"
@@ -114,7 +134,28 @@ export function Navbar() {
               </Link>
             )
           })}
-          <div className="pt-2">
+
+          <div className="pt-2 border-t border-slate-800/80 space-y-2">
+            {user ? (
+              <Link
+                to="/profile"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center px-3.5 py-2.5 rounded-lg text-xs font-mono text-cyan-300 bg-navy-800/60 border border-cyan-500/20"
+              >
+                <User className="w-4 h-4 mr-2.5 text-cyan-400" />
+                <span>Account Profile ({user.email})</span>
+              </Link>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center px-3.5 py-2.5 rounded-lg text-xs font-mono text-slate-300 hover:text-white bg-navy-800/40 border border-slate-800"
+              >
+                <LogIn className="w-4 h-4 mr-2.5 text-slate-400" />
+                <span>Student Sign In / Register</span>
+              </Link>
+            )}
+
             <Link
               to="/upload"
               onClick={() => setMobileMenuOpen(false)}

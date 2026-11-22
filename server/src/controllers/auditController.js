@@ -1,9 +1,11 @@
 import { SCHOLARSHIPS } from '../data/scholarships.js'
 import { runScholarshipAudit } from '../services/auditEngine.js'
 import { storage } from '../services/storageService.js'
+import { supabaseService } from '../services/supabaseService.js'
 
-export function runAudit(req, res) {
+export async function runAudit(req, res) {
   const { scholarshipId, documentIds, manualDocuments } = req.body
+  const userId = req.headers['x-user-id'] || null
 
   if (!scholarshipId) {
     return res.status(400).json({
@@ -33,8 +35,8 @@ export function runAudit(req, res) {
   // Run the deterministic audit engine
   const auditResult = runScholarshipAudit(scholarship, documents)
 
-  // Persist audit record in session store
-  const savedAudit = storage.saveAudit(auditResult)
+  // Persist audit record in session store / Supabase
+  const savedAudit = await supabaseService.saveAudit(auditResult, userId)
 
   res.status(200).json({
     status: 'success',
@@ -42,9 +44,10 @@ export function runAudit(req, res) {
   })
 }
 
-export function getAuditById(req, res) {
+export async function getAuditById(req, res) {
   const { id } = req.params
-  const audit = storage.getAudit(id)
+  const userId = req.headers['x-user-id'] || null
+  const audit = await supabaseService.getAudit(id, userId)
 
   if (!audit) {
     return res.status(404).json({
@@ -60,17 +63,19 @@ export function getAuditById(req, res) {
   })
 }
 
-export function getDashboard(req, res) {
-  const dashboard = storage.getDashboardSummary()
+export async function getDashboard(req, res) {
+  const userId = req.headers['x-user-id'] || null
+  const dashboard = await supabaseService.getDashboardSummary(userId)
   res.status(200).json({
     status: 'success',
     data: dashboard
   })
 }
 
-export function getReport(req, res) {
+export async function getReport(req, res) {
   const { id } = req.params
-  const audit = storage.getAudit(id)
+  const userId = req.headers['x-user-id'] || null
+  const audit = await supabaseService.getAudit(id, userId)
 
   if (!audit) {
     return res.status(404).json({

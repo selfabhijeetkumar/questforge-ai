@@ -24,19 +24,26 @@ export function NotFoundPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-          <Link
-            to="/"
-            className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-mono bg-navy-950 border border-slate-700 hover:border-cyan-400 text-white transition-colors"
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="w-full sm:w-auto inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-mono bg-navy-950 border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Home</span>
+            <span>Go Back</span>
+          </button>
+          <Link
+            to="/"
+            className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-mono bg-navy-950 border border-slate-700 hover:border-cyan-400 text-white transition-colors"
+          >
+            <span>Home</span>
           </Link>
           <Link
             to="/scholarships"
-            className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-headline font-semibold uppercase tracking-wider bg-cyan-500 hover:bg-cyan-400 text-navy-950 shadow-[0_0_15px_rgba(0,240,255,0.3)] transition-all"
+            className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-headline font-semibold uppercase tracking-wider bg-cyan-500 hover:bg-cyan-400 text-navy-950 shadow-[0_0_15px_rgba(0,240,255,0.3)] transition-all"
           >
             <Compass className="w-3.5 h-3.5" />
-            <span>Scholarship Index</span>
+            <span>Explorer</span>
           </Link>
         </div>
       </SpatialCard>

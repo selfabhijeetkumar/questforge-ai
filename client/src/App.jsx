@@ -1,6 +1,8 @@
 import React, { Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { RootLayout } from './components/layout/RootLayout'
+import { AuthProvider } from './context/AuthContext'
+import { ProtectedRoute } from './components/auth/ProtectedRoute'
 
 // Code-split pages via React.lazy for optimal chunk distribution & fast initial paint
 const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })))
@@ -17,6 +19,11 @@ const TermsPage = lazy(() => import('./pages/TermsPage').then(m => ({ default: m
 const CookiePolicyPage = lazy(() => import('./pages/CookiePolicyPage').then(m => ({ default: m.CookiePolicyPage })))
 const ContactPage = lazy(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })))
+const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })))
+const RegisterPage = lazy(() => import('./pages/RegisterPage').then(m => ({ default: m.RegisterPage })))
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })))
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })))
+const ProfilePage = lazy(() => import('./pages/ProfilePage').then(m => ({ default: m.ProfilePage })))
 
 function PageLoader() {
   return (
@@ -33,26 +40,33 @@ function PageLoader() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/" element={<RootLayout />}>
-            <Route index element={<HomePage />} />
-            <Route path="about" element={<AboutPage />} />
-            <Route path="scholarships" element={<ScholarshipExplorerPage />} />
-            <Route path="scholarships/:id" element={<ScholarshipDetailPage />} />
-            <Route path="upload" element={<DocumentUploadPage />} />
-            <Route path="analysis" element={<DocumentAnalysisPage />} />
-            <Route path="audit-results/:id" element={<AuditResultsPage />} />
-            <Route path="dashboard" element={<StudentDashboardPage />} />
-            <Route path="report/:id" element={<ReportPage />} />
-            <Route path="privacy" element={<PrivacyPolicyPage />} />
-            <Route path="terms" element={<TermsPage />} />
-            <Route path="cookies" element={<CookiePolicyPage />} />
-            <Route path="contact" element={<ContactPage />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Route>
-        </Routes>
-      </Suspense>
+      <AuthProvider>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<RootLayout />}>
+              <Route index element={<HomePage />} />
+              <Route path="about" element={<AboutPage />} />
+              <Route path="scholarships" element={<ScholarshipExplorerPage />} />
+              <Route path="scholarships/:id" element={<ScholarshipDetailPage />} />
+              <Route path="upload" element={<DocumentUploadPage />} />
+              <Route path="analysis" element={<DocumentAnalysisPage />} />
+              <Route path="audit-results/:id" element={<AuditResultsPage />} />
+              <Route path="dashboard" element={<StudentDashboardPage />} />
+              <Route path="report/:id" element={<ReportPage />} />
+              <Route path="privacy" element={<PrivacyPolicyPage />} />
+              <Route path="terms" element={<TermsPage />} />
+              <Route path="cookies" element={<CookiePolicyPage />} />
+              <Route path="contact" element={<ContactPage />} />
+              <Route path="login" element={<LoginPage />} />
+              <Route path="register" element={<RegisterPage />} />
+              <Route path="forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="reset-password" element={<ResetPasswordPage />} />
+              <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Route>
+          </Routes>
+        </Suspense>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

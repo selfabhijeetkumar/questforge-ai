@@ -232,3 +232,44 @@ test('API: POST /api/audit/run and GET /api/dashboard /api/reports/:id', async (
   assert.ok(repJson.data.reportId)
   assert.ok(repJson.data.disclaimer)
 })
+
+test('API: GET /api/persistence/status returns storage mode disclosure without secrets', async () => {
+  const res = await fetch(`${baseUrl}/api/persistence/status`)
+  assert.equal(res.status, 200)
+  const json = await res.json()
+  assert.equal(json.status, 'success')
+  assert.ok(json.data.storageType)
+  assert.ok(json.data.note)
+  // Ensure no secrets leaked
+  const str = JSON.stringify(json)
+  assert.ok(!str.includes('serviceRoleKey'))
+  assert.ok(!str.includes('secret'))
+})
+
+test('API: POST /api/contact validates input and records inquiry with delivery notice', async () => {
+  // Test validation error
+  const invalidRes = await fetch(`${baseUrl}/api/contact`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: '', email: 'not-an-email', message: '' })
+  })
+  assert.equal(invalidRes.status, 400)
+
+  // Test successful submission
+  const validRes = await fetch(`${baseUrl}/api/contact`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Dr. Jane Evaluator',
+      email: 'jane.evaluator@institution.edu',
+      topic: 'Course Evaluation Inquiry',
+      message: 'Excellent demonstration of deterministic auditing and multi-provider failover.'
+    })
+  })
+  assert.equal(validRes.status, 200)
+  const validJson = await validRes.json()
+  assert.equal(validJson.status, 'success')
+  assert.equal(validJson.data.savedToLedger, true)
+  assert.equal(validJson.data.emailDelivery, 'DISABLED_UNCONFIGURED')
+  assert.ok(validJson.data.id)
+})

@@ -99,3 +99,5 @@ class StorageService {
 }
 
 export const storage = new StorageService()
+export const storageService = storage
+export { StorageService }
