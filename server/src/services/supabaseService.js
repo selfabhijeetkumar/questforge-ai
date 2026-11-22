@@ -72,7 +72,10 @@ export class SupabaseService {
         summary_notice: auditData.summaryNotice || null,
         raw_metadata: {
           uploadedCategories: auditData.uploadedCategories || [],
-          mode: auditData.mode
+          mode: auditData.mode,
+          stats: auditData.stats || null,
+          scholarshipCode: auditData.scholarshipCode || null,
+          missingMandatory: auditData.missingMandatory || []
         }
       }
 
@@ -152,6 +155,7 @@ export class SupabaseService {
         userId: data.user_id,
         scholarshipId: data.scholarship_id,
         scholarshipTitle: data.scholarship_title,
+        scholarshipCode: data.raw_metadata?.scholarshipCode || null,
         readinessScore: Number(data.readiness_score),
         overallStatus: data.overall_status,
         totalRequirements: data.total_requirements,
@@ -159,6 +163,14 @@ export class SupabaseService {
         missingMandatory: data.raw_metadata?.missingMandatory || [],
         uploadedCategories: data.raw_metadata?.uploadedCategories || [],
         findings: data.audit_findings || [],
+        stats: data.raw_metadata?.stats || {
+          totalRequirements: data.total_requirements,
+          satisfiedCount: data.fulfilled_requirements,
+          missingCount: data.missing_mandatory_count,
+          findingsCount: data.findings_count,
+          actionRequiredCount: (data.audit_findings || []).filter(f => f.severity === 'critical' || f.severity === 'high').length,
+          unableToVerifyCount: (data.audit_findings || []).filter(f => f.severity === 'warning').length
+        },
         createdAt: data.created_at
       }
     } catch (err) {

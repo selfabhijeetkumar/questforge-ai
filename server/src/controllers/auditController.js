@@ -64,58 +64,74 @@ export async function getAuditById(req, res) {
 }
 
 export async function getDashboard(req, res) {
-  const userId = req.headers['x-user-id'] || null
-  const dashboard = await supabaseService.getDashboardSummary(userId)
-  res.status(200).json({
-    status: 'success',
-    data: dashboard
-  })
+  try {
+    const userId = req.headers['x-user-id'] || null
+    const dashboard = await supabaseService.getDashboardSummary(userId)
+    res.status(200).json({
+      status: 'success',
+      data: dashboard
+    })
+  } catch (err) {
+    res.status(500).json({
+      status: 'error',
+      statusCode: 500,
+      message: err.message
+    })
+  }
 }
 
 export async function getReport(req, res) {
-  const { id } = req.params
-  const userId = req.headers['x-user-id'] || null
-  const audit = await supabaseService.getAudit(id, userId)
+  try {
+    const { id } = req.params
+    const userId = req.headers['x-user-id'] || null
+    const audit = await supabaseService.getAudit(id, userId)
 
-  if (!audit) {
-    return res.status(404).json({
+    if (!audit) {
+      return res.status(404).json({
+        status: 'error',
+        statusCode: 404,
+        message: `Audit record '${id}' not found for report generation.`
+      })
+    }
+
+    // Structured report data suitable for both direct display and print rendering
+    const report = {
+      reportId: `REP-${audit.id}`,
+      generatedAt: new Date().toISOString(),
+      scholarship: {
+        id: audit.scholarshipId,
+        title: audit.scholarshipTitle,
+        code: audit.scholarshipCode || 'SCH-CODE'
+      },
+      executiveSummary: {
+        overallStatus: audit.overallStatus,
+        totalFindings: audit.stats?.findingsCount ?? audit.findings?.length ?? 0,
+        actionRequiredCount: audit.stats?.actionRequiredCount ?? 0,
+        unableToVerifyCount: audit.stats?.unableToVerifyCount ?? 0,
+        missingMandatoryDocuments: (audit.missingMandatory || []).map(m => m?.name || m || 'Document'),
+        isReadyForSubmission: audit.overallStatus === 'Ready for Review'
+      },
+      documentInventory: (audit.uploadedCategories || []).map(doc => ({
+        documentId: doc.documentId || doc.id || 'doc-id',
+        filename: doc.originalName || 'document.pdf',
+        category: doc.categoryName || doc.categoryId || 'Document',
+        extractedName: doc.extractedFields?.fullName || 'Not Detected',
+        extractedDob: doc.extractedFields?.dob || 'Not Detected',
+        extractionConfidence: `${Math.round((doc.confidence || 0.9) * 100)}%`
+      })),
+      findings: audit.findings || [],
+      disclaimer: 'QuestForge AI is an academic Skill Enhancement Course (SEC) document auditing assistant. This report provides pre-submission readiness guidance based on configured criteria and does not constitute official scholarship sanction, endorsement, or eligibility guarantee.'
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: report
+    })
+  } catch (err) {
+    res.status(500).json({
       status: 'error',
-      statusCode: 404,
-      message: `Audit record '${id}' not found for report generation.`
+      statusCode: 500,
+      message: err.message
     })
   }
-
-  // Structured report data suitable for both direct display and print rendering
-  const report = {
-    reportId: `REP-${audit.id}`,
-    generatedAt: new Date().toISOString(),
-    scholarship: {
-      id: audit.scholarshipId,
-      title: audit.scholarshipTitle,
-      code: audit.scholarshipCode
-    },
-    executiveSummary: {
-      overallStatus: audit.overallStatus,
-      totalFindings: audit.stats.findingsCount,
-      actionRequiredCount: audit.stats.actionRequiredCount,
-      unableToVerifyCount: audit.stats.unableToVerifyCount,
-      missingMandatoryDocuments: audit.missingMandatory.map(m => m.name),
-      isReadyForSubmission: audit.overallStatus === 'Ready for Review'
-    },
-    documentInventory: audit.uploadedCategories.map(doc => ({
-      documentId: doc.documentId,
-      filename: doc.originalName,
-      category: doc.categoryName,
-      extractedName: doc.extractedFields?.fullName || 'Not Detected',
-      extractedDob: doc.extractedFields?.dob || 'Not Detected',
-      extractionConfidence: `${Math.round(doc.confidence * 100)}%`
-    })),
-    findings: audit.findings,
-    disclaimer: 'QuestForge AI is an academic Skill Enhancement Course (SEC) document auditing assistant. This report provides pre-submission readiness guidance based on configured criteria and does not constitute official scholarship sanction, endorsement, or eligibility guarantee.'
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: report
-  })
 }

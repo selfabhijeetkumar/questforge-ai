@@ -18,9 +18,10 @@ Demonstration Readiness: Production-Ready MVP + Cinematic Spatial 3D + Multi-Pro
   - NVIDIA NIM: `nvidia/nemotron-3-ultra-550b-a55b` (LIVE AND OPERATIONAL, 4,330ms latency, numeric field coercion)
   - Deterministic Rule Engine: Demonstration fallback active on total provider exhaustion
 - Database & Persistence:
-  - Hybrid Persistence Layer (`supabaseService.js`)
-  - PostgreSQL schema (`001_initial_schema.sql`) and Multi-Tenant Row Level Security (`002_row_level_security.sql`)
-  - Active Session Fallback: In-memory secure demonstration repository
+  - Active Cloud Cluster: Supabase Cloud PostgreSQL 17 (`bwllksfjjxmumrrqaifa`) in `ap-south-1` (Mumbai)
+  - Applied Migrations: `001_initial_schema.sql` (6 tables) and `002_row_level_security.sql` (18 RLS policies)
+  - Multi-Tenant Security: RLS active on all tables; auth signup trigger `on_auth_user_created`
+  - Operational Mode: Live Supabase Cloud Mode (in-memory fallback inactive)
 - Stitch Integration: Project ID `16355411590890605607`, Design System `assets/1389316726838585426`
 - OS: Windows x64
 

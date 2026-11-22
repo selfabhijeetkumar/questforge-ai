@@ -29,7 +29,7 @@ QuestForge AI has undergone a full-stack, enterprise-grade engineering and desig
 | Google Gemini AI Engine            | gemini-3.8-flash            | AUTHENTICATED (BILLING)
 | Automatic Multi-Provider Failover  | Gemini -> Groq -> NVIDIA    | VERIFIED LIVE        |
 | Deterministic Offline Engine       | Demo Rule-Based Matcher     | VERIFIED LIVE        |
-| Persistence & Database Enclave     | PostgreSQL / In-Memory Repo | HYBRID FALLBACK PASS |
+| Persistence & Database Enclave     | Supabase PostgreSQL (Mumbai)| 100% OPERATIONAL     |
 | Security & Zero-Secret Compliance  | Git, Bundles, Logs, APIs    | 100% CLEAN (0 LEAKS) |
 +------------------------------------+-----------------------------+----------------------+
 ```
@@ -94,6 +94,15 @@ QuestForge AI has undergone a full-stack, enterprise-grade engineering and desig
   - `QUESTFORGE_AI_COMPLETE_API_VERIFICATION.md` (Formal verification report).
   - `QUESTFORGE_AI_MASTER_EXECUTION_TRACKER.md` (This document).
 
+### Phase 11: Supabase Cloud Live Activation & Multi-Tenant RLS
+- **Objective:** Provision and activate production-grade Supabase Cloud PostgreSQL in Mumbai (`ap-south-1`), apply schema and RLS policies, configure credentials securely, and prove multi-tenant isolation.
+- **Key Artifacts Created:**
+  - Dedicated Project: `QuestForge AI 01` (`bwllksfjjxmumrrqaifa`) in `ap-south-1` (Mumbai).
+  - Applied Migrations: `001_initial_schema.sql` (6 tables) and `002_row_level_security.sql` (18 RLS policies).
+  - Credentials Configured: `client/.env` (Vite anon key only) and `server/.env` (service role).
+  - Verification Suite: `scripts/verify_supabase_live.js` (17/17 checks passed).
+  - Documentation: `SUPABASE_LIVE_VERIFICATION.md`.
+
 ---
 
 ## 3. Comprehensive Task Execution Matrix
@@ -117,6 +126,11 @@ QuestForge AI has undergone a full-stack, enterprise-grade engineering and desig
 | **TSK-15** | P10 | Multi-Provider Automatic Failover Tests | **VERIFIED** | `scripts/verify_all_apis_live.js` | `node scripts/verify_all_apis_live.js` | Exit code 0. Live failover from Gemini to Groq (1.1s); cooldown failover to NVIDIA | None |
 | **TSK-16** | P10 | Systematic Backend Endpoint Verification | **VERIFIED** | `scripts/verify_all_apis_live.js` | `node scripts/verify_all_apis_live.js` | Exit code 0. 27/27 test cases passed across all 15 endpoints + wildcard | None |
 | **TSK-17** | P10 | Final Documentation & Execution Tracker | **VERIFIED** | `QUESTFORGE_AI_COMPLETE_API_VERIFICATION.md`<br>`QUESTFORGE_AI_MASTER_EXECUTION_TRACKER.md` | `git status` | Written post-execution at 16:13-16:14 IST after JSON persistence | None |
+| **TSK-18** | P11 | Mumbai Cloud Project Provisioning | **VERIFIED** | Supabase Project `bwllksfjjxmumrrqaifa` | Supabase Management API query | Verified `ACTIVE_HEALTHY` in `ap-south-1` (Mumbai) | None |
+| **TSK-19** | P11 | Apply Database Migrations 001 & 002 | **VERIFIED** | `scripts/apply_supabase_migrations.js` | `node scripts/apply_supabase_migrations.js` | 6 tables created, 18 RLS policies active, trigger installed | None |
+| **TSK-20** | P11 | Secure Environment Configuration | **VERIFIED** | `server/.env`<br>`client/.env` | `node scripts/configure_supabase_env.js` | Anon key in client, service role strictly on server, zero leaks | None |
+| **TSK-21** | P11 | Supabase Live Integration & RLS Tests | **VERIFIED** | `scripts/verify_supabase_live.js` | `node scripts/verify_supabase_live.js` | 17/17 checks passed (auth, trigger, persistence, RLS isolation) | None |
+| **TSK-22** | P11 | Supabase Live Verification Report | **VERIFIED** | `SUPABASE_LIVE_VERIFICATION.md` | `git status` | Complete audit report authored | None |
 
 ---
 
@@ -199,6 +213,9 @@ QuestForge AI is fully built, self-contained, and operational. The remaining ite
 1. **Google Cloud / AI Studio Billing (For Gemini Generation):**
    - *Status:* API key is valid and authenticates with HTTP 200. Generation is blocked by Google Cloud free tier restrictions (`FREE_TIER_NOT_AVAILABLE`).
    - *Resolution:* If desired, enable billing for the associated project at `https://aistudio.google.com/billing`. Until then, the system operates seamlessly on Groq Cloud and NVIDIA NIM without manual intervention.
-2. **Supabase Cloud Project (Optional for PostgreSQL Storage):**
-   - *Status:* Migrations and client/server adapters are complete. Hybrid in-memory session persistence is currently active.
-   - *Resolution:* To persist data to a hosted PostgreSQL instance, create a Supabase project at `https://supabase.com`, execute `001_initial_schema.sql` and `002_row_level_security.sql` in the Supabase SQL Editor, and supply `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in `server/.env`.
+2. **Supabase Cloud Project (Production Database & Auth):**
+   - *Status:* **100% COMPLETE & OPERATIONAL**.
+   - *Details:* Connected to dedicated Mumbai project `QuestForge AI 01` (`bwllksfjjxmumrrqaifa`) in `ap-south-1`.
+   - *Verification:* All 6 tables, 18 RLS policies, auth signup triggers, and 17 live test scenarios verified. In-memory fallback is no longer active; live cloud persistence is running.
+3. **Next Phase — Production Deployment & Custom Domain Preparation:**
+   - Production build verified (27 chunks). Ready for custom domain and cloud host deployment.
