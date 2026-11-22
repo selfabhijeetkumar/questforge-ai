@@ -19,7 +19,7 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }))
 
-// Explicit CORS with Cloudflare Pages Staging & Localhost Support
+// Explicit CORS with Vercel, Cloudflare Pages Staging & Localhost Support
 const configuredOrigins = (config.clientUrl || 'http://localhost:5173')
   .split(',')
   .map(url => url.trim().replace(/\/+$/, ''))
@@ -34,7 +34,7 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow non-browser requests (e.g. mobile, curl, server-to-server)
     if (!origin) return callback(null, true)
-    if (allowedOrigins.includes(origin) || origin.endsWith('.pages.dev')) {
+    if (allowedOrigins.includes(origin) || origin.endsWith('.pages.dev') || origin.endsWith('.vercel.app')) {
       return callback(null, true)
     }
     return callback(new Error(`Origin ${origin} not allowed by CORS`))
