@@ -5,6 +5,9 @@ import { config } from './config/env.js'
 import { apiLimiter } from './middleware/rateLimiter.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import healthRoutes from './routes/healthRoutes.js'
+import scholarshipRoutes from './routes/scholarshipRoutes.js'
+import documentRoutes from './routes/documentRoutes.js'
+import auditRoutes from './routes/auditRoutes.js'
 
 const app = express()
 
@@ -17,7 +20,7 @@ app.use(helmet({
 app.use(cors({
   origin: [config.clientUrl, 'http://localhost:5173', 'http://127.0.0.1:5173'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }))
 
@@ -30,8 +33,11 @@ app.use('/api', apiLimiter)
 
 // Mount Routes
 app.use('/api', healthRoutes)
+app.use('/api', scholarshipRoutes)
+app.use('/api', documentRoutes)
+app.use('/api', auditRoutes)
 
-// 404 handler for API routes
+// 404 handler for unmatched API routes
 app.use('/api/*', (req, res) => {
   res.status(404).json({
     status: 'error',
