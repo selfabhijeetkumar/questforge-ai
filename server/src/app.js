@@ -19,9 +19,26 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }))
 
-// Explicit CORS
+// Explicit CORS with Cloudflare Pages Staging & Localhost Support
+const configuredOrigins = (config.clientUrl || 'http://localhost:5173')
+  .split(',')
+  .map(url => url.trim().replace(/\/+$/, ''))
+
+const allowedOrigins = [...new Set([
+  ...configuredOrigins,
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
+])]
+
 app.use(cors({
-  origin: [config.clientUrl, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: (origin, callback) => {
+    // Allow non-browser requests (e.g. mobile, curl, server-to-server)
+    if (!origin) return callback(null, true)
+    if (allowedOrigins.includes(origin) || origin.endsWith('.pages.dev')) {
+      return callback(null, true)
+    }
+    return callback(new Error(`Origin ${origin} not allowed by CORS`))
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

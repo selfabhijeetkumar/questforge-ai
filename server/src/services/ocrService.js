@@ -234,12 +234,14 @@ export async function extractTextFromDocument(fileBuffer, mimetype, originalName
     } else if (mimetype.startsWith('image/')) {
       method = 'TESSERACT_OCR'
       const worker = await Tesseract.createWorker('eng')
-      const result = await worker.recognize(fileBuffer)
-      await worker.terminate()
-
-      extractedText = normalizeExtractedText(result.data.text || '')
-      confidence = Math.round((result.data.confidence || 60) * 10) / 1000 // Convert 0-100 to 0.0-1.0
-      if (confidence > 1.0) confidence = 0.85
+      try {
+        const result = await worker.recognize(fileBuffer)
+        extractedText = normalizeExtractedText(result.data.text || '')
+        confidence = Math.round((result.data.confidence || 60) * 10) / 1000 // Convert 0-100 to 0.0-1.0
+        if (confidence > 1.0) confidence = 0.85
+      } finally {
+        await worker.terminate()
+      }
     } else {
       throw new Error(`Unsupported document format: ${mimetype}`)
     }

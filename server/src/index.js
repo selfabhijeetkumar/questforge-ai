@@ -3,7 +3,7 @@ import { config, validateEnv } from './config/env.js'
 
 const { warnings } = validateEnv()
 
-const server = app.listen(config.port, () => {
+const server = app.listen(config.port, '0.0.0.0', () => {
   console.log(`=======================================================`)
   console.log(` QuestForge AI Server is running on port ${config.port}`)
   console.log(` Mode: ${config.isDemonstrationMode ? 'Deterministic Demonstration Mode' : 'AI-Connected Mode'}`)
