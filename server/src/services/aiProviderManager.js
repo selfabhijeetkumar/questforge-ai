@@ -4,6 +4,20 @@ import { groqProvider, GroqProvider } from './providers/groqProvider.js'
 import { nvidiaProvider, NvidiaProvider } from './providers/nvidiaProvider.js'
 import { extractStructuredFieldsFromText } from './ocrService.js'
 
+function coerceNumber(val) {
+  if (val === null || val === undefined) return null
+  if (typeof val === 'number') return isNaN(val) ? null : val
+  if (typeof val === 'string') {
+    const cleaned = val.replace(/,/g, '').trim()
+    const match = cleaned.match(/-?[0-9]+(?:\.[0-9]+)?/)
+    if (match) {
+      const num = parseFloat(match[0])
+      return isNaN(num) ? null : num
+    }
+  }
+  return null
+}
+
 export class AIProviderManager {
   constructor(providers = null) {
     this.providers = providers || {
@@ -16,7 +30,7 @@ export class AIProviderManager {
     this.cooldowns = new Map() // providerId -> timestamp
     this.lastErrors = new Map() // providerId -> { message, at }
     this.lastUsed = new Map()   // providerId -> timestamp
-    this.verificationStatus = new Map() // providerId -> 'CONFIGURED' | 'AUTHENTICATED' | 'AUTH_FAILED' | 'MODEL_UNAVAILABLE' | 'RATE_LIMITED' | 'TEMPORARILY_UNAVAILABLE'
+    this.verificationStatus = new Map() // providerId -> 'CONFIGURED' | 'AUTHENTICATED' | 'AUTH_FAILED' | 'BILLING_REQUIRED' | 'MODEL_UNAVAILABLE' | 'RATE_LIMITED' | 'TEMPORARILY_UNAVAILABLE'
   }
 
   isProviderInCooldown(providerId) {
@@ -150,6 +164,8 @@ export class AIProviderManager {
         // Update verification status based on error
         if (lastResult.errorCode === 'AUTHENTICATION_ERROR') {
           this.verificationStatus.set(providerId, 'AUTH_FAILED')
+        } else if (lastResult.errorCode === 'PROJECT_BILLING_REQUIRED' || lastResult.errorCode === 'BILLING_REQUIRED') {
+          this.verificationStatus.set(providerId, 'BILLING_REQUIRED')
         } else if (lastResult.errorCode === 'MODEL_UNSUPPORTED') {
           this.verificationStatus.set(providerId, 'MODEL_UNAVAILABLE')
         } else if (lastResult.errorCode === 'RATE_LIMITED') {
@@ -160,8 +176,13 @@ export class AIProviderManager {
           this.verificationStatus.set(providerId, 'TEMPORARILY_UNAVAILABLE')
         }
 
-        // If authentication error, do not retry
-        if (lastResult.errorCode === 'AUTHENTICATION_ERROR' || lastResult.errorCode === 'MODEL_UNSUPPORTED') {
+        // If permanent error or billing block, do not retry this provider
+        if (
+          lastResult.errorCode === 'AUTHENTICATION_ERROR' ||
+          lastResult.errorCode === 'PROJECT_BILLING_REQUIRED' ||
+          lastResult.errorCode === 'BILLING_REQUIRED' ||
+          lastResult.errorCode === 'MODEL_UNSUPPORTED'
+        ) {
           break
         }
 
@@ -243,8 +264,8 @@ ${extractedText.slice(0, 4000)}
         fields: {
           fullName: parsed.fullName || null,
           dob: parsed.dob || null,
-          annualIncome: typeof parsed.annualIncome === 'number' ? parsed.annualIncome : null,
-          percentageMarks: typeof parsed.percentageMarks === 'number' ? parsed.percentageMarks : null,
+          annualIncome: coerceNumber(parsed.annualIncome),
+          percentageMarks: coerceNumber(parsed.percentageMarks),
           institutionName: parsed.institutionName || null,
           idNumber: parsed.idNumber || null,
           summary: parsed.summary || null,
@@ -282,10 +303,31 @@ ${extractedText.slice(0, 4000)}
       return { success: false, provider: providerId, status: 'UNCONFIGURED', error: `${provider.name} is not configured with an API key.` }
     }
 
+    // Check API key authentication first if supported
+    let keyAuthenticated = false
+    if (typeof provider.checkAuthentication === 'function') {
+      const authCheck = await provider.checkAuthentication()
+      if (!authCheck.authenticated) {
+        this.verificationStatus.set(providerId, 'AUTH_FAILED')
+        this.lastErrors.set(providerId, { message: authCheck.error, at: new Date().toISOString() })
+        return {
+          success: false,
+          provider: providerId,
+          status: 'AUTH_FAILED',
+          model: provider.config?.model,
+          errorCode: authCheck.errorCode || 'AUTHENTICATION_ERROR',
+          error: authCheck.error,
+          keyAuthenticated: false,
+          durationMs: authCheck.durationMs
+        }
+      }
+      keyAuthenticated = true
+    }
+
     const testPrompt = {
       systemPrompt: 'Respond strictly with valid JSON: {"status": "ok", "provider": "' + providerId + '"}',
       userContent: 'ping',
-      timeout: 10000
+      timeout: 15000
     }
 
     const result = await provider.generateStructuredResponse(testPrompt)
@@ -305,9 +347,15 @@ ${extractedText.slice(0, 4000)}
 
     // Determine error status
     let status = 'TEMPORARILY_UNAVAILABLE'
-    if (result.errorCode === 'AUTHENTICATION_ERROR') status = 'AUTH_FAILED'
-    else if (result.errorCode === 'MODEL_UNSUPPORTED') status = 'MODEL_UNAVAILABLE'
-    else if (result.errorCode === 'RATE_LIMITED') status = 'RATE_LIMITED'
+    if (result.errorCode === 'PROJECT_BILLING_REQUIRED' || result.errorCode === 'BILLING_REQUIRED') {
+      status = 'BILLING_REQUIRED'
+    } else if (result.errorCode === 'AUTHENTICATION_ERROR') {
+      status = 'AUTH_FAILED'
+    } else if (result.errorCode === 'MODEL_UNSUPPORTED') {
+      status = 'MODEL_UNAVAILABLE'
+    } else if (result.errorCode === 'RATE_LIMITED') {
+      status = 'RATE_LIMITED'
+    }
 
     this.verificationStatus.set(providerId, status)
     this.lastErrors.set(providerId, { message: result.error, at: new Date().toISOString() })
@@ -319,6 +367,7 @@ ${extractedText.slice(0, 4000)}
       model: provider.config?.model,
       errorCode: result.errorCode,
       error: result.error,
+      keyAuthenticated,
       durationMs: result.durationMs
     }
   }

@@ -221,6 +221,121 @@ test('Failover Sequence (Scenario K): Gemini (401) -> Groq (500) -> NVIDIA Succe
   assert.equal(result.attempts.length, 3)
 })
 
+test('Failover Sequence (Scenario M): Gemini Billing Required (403 FREE_TIER_NOT_AVAILABLE) -> Instant Failover to Groq', async () => {
+  let geminiCalls = 0
+  const mockGemini = {
+    name: 'Google Gemini',
+    id: 'gemini',
+    config: { model: 'gemini-3.8-flash' },
+    isConfigured: () => true,
+    checkAuthentication: async () => ({
+      authenticated: true,
+      status: 'AUTHENTICATED',
+      durationMs: 40
+    }),
+    generateStructuredResponse: async () => {
+      geminiCalls++
+      return {
+        success: false,
+        provider: 'gemini',
+        model: 'gemini-3.8-flash',
+        errorCode: 'PROJECT_BILLING_REQUIRED',
+        error: 'The Gemini API free tier is not available for this project. Set up billing at https://aistudio.google.com/billing',
+        retryable: false,
+        durationMs: 30
+      }
+    }
+  }
+
+  const mockGroq = {
+    name: 'Groq Cloud',
+    id: 'groq',
+    config: { model: 'openai/gpt-oss-120b' },
+    isConfigured: () => true,
+    generateStructuredResponse: async () => ({
+      success: true,
+      provider: 'groq',
+      model: 'openai/gpt-oss-120b',
+      content: {
+        fullName: 'Aarav Mehta',
+        dob: '10/05/2004',
+        annualIncome: 150000,
+        percentageMarks: 94.2,
+        institutionName: 'BITS Pilani',
+        idNumber: 'AARAV1234',
+        summary: 'Merit scholarship application.'
+      },
+      durationMs: 45
+    })
+  }
+
+  const manager = new AIProviderManager({
+    gemini: mockGemini,
+    groq: mockGroq,
+    nvidia: { isConfigured: () => false }
+  })
+
+  // Test provider status check: should flag BILLING_REQUIRED while acknowledging key authentication
+  const testRes = await manager.testProvider('gemini')
+  assert.equal(testRes.status, 'BILLING_REQUIRED')
+  assert.equal(testRes.keyAuthenticated, true)
+  assert.equal(testRes.errorCode, 'PROJECT_BILLING_REQUIRED')
+
+  // Reset counter before failover execution test
+  geminiCalls = 0
+
+  // Execute extraction with failover
+  const result = await manager.executeWithFailover({
+    systemPrompt: 'Extract fields',
+    userContent: 'Aarav Mehta, BITS Pilani'
+  })
+
+  assert.equal(result.success, true)
+  assert.equal(result.provider, 'groq')
+  assert.equal(result.content.fullName, 'Aarav Mehta')
+  assert.equal(geminiCalls, 1, 'Gemini must not be retried when billing is required')
+  assert.equal(result.attempts[0].errorCode, 'PROJECT_BILLING_REQUIRED')
+})
+
+test('NVIDIA Schema Coercion: String-formatted units ("250000 INR", "89.2%") cleanly coerce to numbers', async () => {
+  const mockNvidia = {
+    name: 'NVIDIA NeMoTron 3 Ultra',
+    id: 'nvidia',
+    config: { model: 'nvidia/nemotron-3-ultra-550b-a55b' },
+    isConfigured: () => true,
+    generateStructuredResponse: async () => ({
+      success: true,
+      provider: 'nvidia',
+      model: 'nvidia/nemotron-3-ultra-550b-a55b',
+      content: {
+        fullName: 'Devika Nair',
+        dob: '14/02/2004',
+        annualIncome: '250000 INR',
+        percentageMarks: '89.2%',
+        institutionName: 'NIT Calicut',
+        idNumber: 'DOC-99881',
+        summary: 'Income and academic certificate with string formatted units.'
+      },
+      durationMs: 120
+    })
+  }
+
+  const manager = new AIProviderManager({
+    gemini: { isConfigured: () => false },
+    groq: { isConfigured: () => false },
+    nvidia: mockNvidia
+  })
+
+  const extracted = await manager.extractDocumentEntities('Devika Nair, Annual Income: 2,50,000 INR, Marks: 89.2%', 'Income Certificate')
+
+  assert.equal(extracted.aiAvailable, true)
+  assert.equal(extracted.source, 'AI_NVIDIA')
+  assert.equal(extracted.fields.annualIncome, 250000)
+  assert.equal(typeof extracted.fields.annualIncome, 'number')
+  assert.equal(extracted.fields.percentageMarks, 89.2)
+  assert.equal(typeof extracted.fields.percentageMarks, 'number')
+})
+
 test('Failover Sequence (Scenario L): All Providers Fail -> Graceful Fallback to Deterministic Rules', async () => {
   const failingProvider = (id, name, errCode) => ({
     name,

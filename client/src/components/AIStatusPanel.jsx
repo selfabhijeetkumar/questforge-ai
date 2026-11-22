@@ -25,6 +25,13 @@ function StatusBadge({ status }) {
       </span>
     )
   }
+  if (status === 'BILLING_REQUIRED') {
+    return (
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-950 text-amber-300 border border-amber-700" title="Key authenticated; Google Cloud project billing required for generation">
+        Billing Required
+      </span>
+    )
+  }
   if (status === 'MODEL_UNAVAILABLE') {
     return (
       <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-rose-950 text-rose-400 border border-rose-800">
@@ -261,6 +268,18 @@ export function AIStatusPanel() {
               />
             ))}
           </div>
+
+          {providerList.some(p => p.status === 'BILLING_REQUIRED') && (
+            <div className="p-3 rounded bg-amber-950/30 border border-amber-800/50 text-[11px] text-amber-300 space-y-1">
+              <div className="flex items-center space-x-1.5 font-medium text-amber-200">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                <span>Google Gemini Billing Entitlement Notice:</span>
+              </div>
+              <p className="leading-relaxed text-amber-300/90">
+                The Gemini API key is valid and authenticated. However, Google Cloud requires billing enabled for the linked GCP project to generate content (<a href="https://aistudio.google.com/billing" target="_blank" rel="noreferrer" className="underline hover:text-white font-mono">aistudio.google.com/billing</a>). QuestForge AI's automatic multi-provider failover seamlessly uses Groq and NVIDIA NIM.
+              </p>
+            </div>
+          )}
 
           <div className="p-3 rounded bg-slate-900/60 border border-slate-800 text-[11px] text-slate-400 space-y-1">
             <div className="flex items-center space-x-1.5 font-medium text-slate-300">

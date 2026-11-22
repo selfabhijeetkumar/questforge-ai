@@ -40,7 +40,7 @@ export const AI_PROVIDERS_CONFIG = {
   // Failover and Execution Settings
   primaryProvider: process.env.AI_PRIMARY_PROVIDER || 'gemini',
   failoverEnabled: process.env.AI_FAILOVER_ENABLED !== 'false',
-  timeoutMs: parseInt(process.env.AI_REQUEST_TIMEOUT_MS, 10) || 30000,
+  timeoutMs: parseInt(process.env.AI_REQUEST_TIMEOUT_MS, 10) || 45000,
   maxRetries: parseInt(process.env.AI_MAX_RETRIES, 10) || 1,
 }
 
