@@ -44,13 +44,13 @@ SUPABASE_ACCESS_TOKEN=sbp_...[OPTIONAL_CLI_MANAGEMENT_TOKEN]
 # MULTI-PROVIDER AI EXTRACTION ENGINE (FAILOVER SEQUENCE)
 # Sequence: Gemini (Priority 1) -> Groq (Priority 2) -> NVIDIA (Priority 3) -> Deterministic
 # ==============================================================================
-# Primary Provider: Google Gemini API (Requires billing on Google Cloud project)
+# Primary Provider: Google Gemini API (Model: gemini-3.8-flash, requires project billing)
 GEMINI_API_KEY=AIzaSy...[REPLACE_WITH_GEMINI_KEY]
 
-# Secondary Provider: Groq Cloud (High-speed Llama 3.3 70B inference)
+# Secondary Provider: Groq Cloud (Model: openai/gpt-oss-120b, live operational)
 GROQ_API_KEY=gsk_...[REPLACE_WITH_GROQ_KEY]
 
-# Tertiary Provider: NVIDIA NIM (Llama 3.1 70B Instruct via build.nvidia.com)
+# Tertiary Provider: NVIDIA NIM (Model: nvidia/nemotron-3-ultra-550b-a55b, live operational)
 NVIDIA_API_KEY=nvapi-...[REPLACE_WITH_NVIDIA_KEY]
 ```
 

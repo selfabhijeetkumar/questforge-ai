@@ -82,7 +82,7 @@ The test script `scripts/verify_backend_authorization.js` was executed against a
 | **Storage Engine** | Multer configured with `memoryStorage()` (`server/src/middleware/uploadMiddleware.js`). Files reside in volatile Node.js `Buffer` objects in RAM. | **100% Aligned:** Matches Section 2 ("Volatile Memory Processing"). |
 | **Disk Retention** | `fs.writeFile`, `fs.createWriteStream`, or disk storage are **never** invoked for uploaded documents. Zero files written to server disk. | **100% Aligned:** Matches Section 2 & 4 ("Zero disk retention"). |
 | **Session Lifecycle** | Document records in `storageService.js` are held in an in-memory `Map`. They persist only while the server process runs and are cleared on restart. | **100% Aligned:** Matches Section 2 ("Cleared upon server restart"). |
-| **External AI Transmission** | Extracted text (not raw binaries) is transmitted over outbound TLS/HTTPS to Groq / NVIDIA / Gemini exclusively for structured entity extraction. Documents are never sent directly from client browsers to third parties. | **100% Aligned:** Matches Section 3 ("Controlled Field Extraction via backend proxy"). |
+| **External AI Transmission** | Extracted text (not raw binaries) is transmitted over outbound TLS/HTTPS to Groq (`openai/gpt-oss-120b`) or NVIDIA NIM (`nvidia/nemotron-3-ultra-550b-a55b`) or Gemini (`gemini-3.8-flash`, billing restricted) exclusively for structured entity extraction. Documents are never sent directly from client browsers to third parties. | **100% Aligned:** Matches Section 3 ("Controlled Field Extraction via backend proxy"). |
 | **Binary Verification** | Binary magic bytes (PDF `%PDF-`, JPEG `\xFF\xD8\xFF`, PNG `\x89PNG`) are inspected in memory to reject disguised files before processing. | **100% Aligned:** Strict file validation enforced. |
 | **Data Erasure & Export** | Student profile allows JSON data export (`/api/dashboard`) and active session purging. | **100% Aligned:** Meets DPDP guidelines for access and erasure. |
 
@@ -133,10 +133,14 @@ The test script `scripts/verify_backend_authorization.js` was executed against a
 
 ## 8. Supabase Cloud Configuration Audit
 
-- **Project:** `bwllksfjjxmumrrqaifa` (Mumbai, `ap-south-1`, Status: `ACTIVE_HEALTHY`).
+- **Project:** `bwllksfjjxmumrrqaifa` (Mumbai, `ap-south-1`, Status: `ACTIVE_HEALTHY`, Plan: `Free`).
 - **Database Tables:** 6 active tables (`user_profiles`, `user_preferences`, `audit_sessions`, `audit_documents`, `audit_findings`, `contact_inquiries`).
 - **Row-Level Security:** 18 active policies across all 6 tables.
-- **Email Delivery / SMTP:**
-  - Supabase free-tier built-in SMTP has strict rate limits (typically 3–4 emails per hour).
-  - Password reset endpoint dispatches correctly, but for reliable inbox delivery on a custom domain, custom SMTP (e.g., Resend, SendGrid, Amazon SES) must be configured in the Supabase Dashboard.
-  - Clear user instructions are provided in `DOMAIN_CONFIGURATION_GUIDE.md`.
+- **Database Backup Reality on Free Tier:**
+  - Automated daily backups are **NOT** provided on the Supabase Free plan (requires Pro plan at \$25/mo).
+  - Disaster recovery is secured via manual CLI dumps (`supabase db dump --project-ref bwllksfjjxmumrrqaifa`).
+  - Dumps must be encrypted locally (GPG AES256) and excluded from Git. See `PRODUCTION_DEPLOYMENT_REPORT.md` Section 4 for complete CLI backup, verification, and restore procedures.
+- **Email Delivery / SMTP Security & Limitations:**
+  - Supabase free-tier built-in SMTP has strict rate limits (typically 3–4 emails per hour) and delivery is restricted to development/team testing.
+  - Password reset endpoint dispatches correctly, but for reliable inbox delivery on a custom domain, custom SMTP (e.g., Resend or SendGrid) must be configured in the Supabase Dashboard.
+  - Email templates and redirect URL whitelists must be verified as documented in `PRODUCTION_DEPLOYMENT_REPORT.md` and `DOMAIN_CONFIGURATION_GUIDE.md`.

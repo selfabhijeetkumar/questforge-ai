@@ -1,7 +1,7 @@
 # QuestForge AI — Project State
 
 Last Updated: 2026-11-22
-Current Status: Master Design & Engineering Transformation Complete — Audited & Verified
+Current Status: Phase 12 Production Deployment Preparation & Final Security Audit Reconciled
 Demonstration Readiness: Production-Ready MVP + Cinematic Spatial 3D + Multi-Provider AI + Supabase Auth Enclave
 
 ---
@@ -18,10 +18,11 @@ Demonstration Readiness: Production-Ready MVP + Cinematic Spatial 3D + Multi-Pro
   - NVIDIA NIM: `nvidia/nemotron-3-ultra-550b-a55b` (LIVE AND OPERATIONAL, 4,330ms latency, numeric field coercion)
   - Deterministic Rule Engine: Demonstration fallback active on total provider exhaustion
 - Database & Persistence:
-  - Active Cloud Cluster: Supabase Cloud PostgreSQL 17 (`bwllksfjjxmumrrqaifa`) in `ap-south-1` (Mumbai)
+  - Active Cloud Cluster: Supabase Cloud PostgreSQL 17 (`bwllksfjjxmumrrqaifa`) in `ap-south-1` (Mumbai, Free Plan)
   - Applied Migrations: `001_initial_schema.sql` (6 tables) and `002_row_level_security.sql` (18 RLS policies)
   - Multi-Tenant Security: RLS active on all tables; auth signup trigger `on_auth_user_created`
   - Operational Mode: Live Supabase Cloud Mode (in-memory fallback inactive)
+  - Backup Strategy: Manual CLI dumps via `supabase db dump` (automated daily backups unavailable on free plan)
 - Stitch Integration: Project ID `16355411590890605607`, Design System `assets/1389316726838585426`
 - OS: Windows x64
 
@@ -47,7 +48,7 @@ Demonstration Readiness: Production-Ready MVP + Cinematic Spatial 3D + Multi-Pro
   - `/terms` (Terms and Conditions)
   - `/cookies` (Cookie Policy)
   - `/contact` (Contact Course Team with IP-hashed ledger persistence)
-  - `*` (Cybernetic 404 Page)
+  - `*` (Cybernetic 404 Page with dynamic noindex tag)
 - [x] Client Authentication Enclave (5 Dedicated Auth Pages):
   - `/login` (Login with remember-me and forgot-password link)
   - `/register` (Registration with strong password validation)
@@ -57,23 +58,25 @@ Demonstration Readiness: Production-Ready MVP + Cinematic Spatial 3D + Multi-Pro
   - `ProtectedRoute` component guarding authenticated areas
 - [x] Security Hardening: Magic-byte inspection (%PDF / \x89PNG), path traversal sanitization, Helmet/CORS protection, and zero-secret API responses.
 - [x] Backend Authorization & User Isolation (Phase 12): Cryptographic Bearer JWT verification via Supabase Auth (`authMiddleware.js`), client-supplied `x-user-id` stripped, server-side data scoping on all audit/report/dashboard/document endpoints, and volatile memory scoping. Verified with 20/20 cross-user test suite.
-- [x] Live Multi-Provider Failover: Seamless transition from Gemini (billing blocked) to Groq (1.1s) and NVIDIA NIM.
+- [x] Live Multi-Provider Failover: Seamless transition from Gemini (billing blocked) to Groq (`openai/gpt-oss-120b`, ~1.1s) and NVIDIA NIM (`nvidia/nemotron-3-ultra-550b-a55b`, ~4.3s).
 - [x] Automated Testing:
   - 31/31 backend unit & scenario tests passing (`npm --prefix server test`)
   - 27/27 live API endpoints passing (`verify_all_api_endpoints.js`)
   - 17/17 Supabase live cloud persistence & RLS tests passing (`verify_supabase_live.js`)
   - 20/20 Cross-User authorization & IDOR isolation tests passing (`verify_backend_authorization.js`)
 - [x] Production Deployment Preparation (Phase 12 Deliverables):
-  - `PRODUCTION_DEPLOYMENT_REPORT.md` (Hosting architecture, free tier evaluation, build commands)
-  - `PRODUCTION_SECURITY_AUDIT.md` (Authorization verification, RLS policies, zero-disk retention audit)
+  - `PRODUCTION_DEPLOYMENT_REPORT.md` (Hosting architecture, free tier evaluation, build commands, Supabase CLI backup strategy, custom SMTP guide)
+  - `PRODUCTION_SECURITY_AUDIT.md` (Authorization verification, RLS policies, zero-disk retention audit, backup reality)
+  - `DEPLOYMENT_CHECKLIST.md` (Deployment matrix, backup protocol, reverse proxy, and environment audit)
+  - `PRELAUNCH_CHECKLIST.md` (18-point pre-launch verification audit and readiness determination)
   - `DOMAIN_CONFIGURATION_GUIDE.md` (Step-by-step DNS, CNAME, HTTPS, CORS, and Supabase Auth configuration)
-  - `PRODUCTION_ENV_TEMPLATE.md` (Clean environment templates without secrets)
-  - `FINAL_LAUNCH_CHECKLIST.md` (Pre-launch release gates and classification)
+  - `PRODUCTION_ENV_TEMPLATE.md` (Clean environment variable templates with zero secrets leaked)
+  - `FINAL_LAUNCH_CHECKLIST.md` (Comprehensive release readiness classification)
   - `robots.txt`, `sitemap.xml`, and dynamic 404 `noindex` tag created.
 - [x] Production Build Verification: Vite 6 builds 27 code-split chunks in 5.6s with 0 secret keys leaked.
-  - 31/31 backend unit & integration tests passing (`npm --prefix server test`).
-  - 27/27 live API endpoint tests passing (`node scripts/verify_all_apis_live.js`).
-- [x] Production Build: Compiling cleanly into 27 code-split chunks (`client/dist/`).
+- [x] Reconciled AI Models: Gemini (`gemini-3.8-flash`), Groq (`openai/gpt-oss-120b`), NVIDIA NIM (`nvidia/nemotron-3-ultra-550b-a55b`).
+- [x] Supabase Free Tier Backup Reality: Documented manual CLI backup protocol (`supabase db dump`); daily auto-backups unavailable on free plan.
+- [x] Custom SMTP Integration: Documented Resend & SendGrid setup to overcome 3–4 emails/hr free tier limit.
 
 ---
 
@@ -87,3 +90,5 @@ Demonstration Readiness: Production-Ready MVP + Cinematic Spatial 3D + Multi-Pro
 - `41824e3`: `feat: fix Gemini authentication diagnosis, harden NVIDIA schema coercion, and validate multi-provider failover`
 - `af66339`: `feat: complete Supabase persistence architecture, authentication flows, real contact action, custom favicon, and final delivery suite`
 - `776d59e`: `docs: complete live API health check, failover verification, and master execution tracker`
+- `40a6d3a`: `feat(supabase): activate live Supabase Cloud in Mumbai (ap-south-1), apply migrations, and verify RLS multi-tenant isolation`
+- `fbe476e`: `feat(phase-12): production deployment preparation, authorization security audit and release artifacts`

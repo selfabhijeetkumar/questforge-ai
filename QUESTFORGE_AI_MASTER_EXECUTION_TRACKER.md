@@ -25,7 +25,7 @@ QuestForge AI has undergone a full-stack, enterprise-grade engineering and desig
 | Automated Backend Test Suite       | 31 Unit & Integration Tests | 31/31 PASSING (100%) |
 | Live API Verification Suite        | 27 Live & Edge Test Cases   | 27/27 PASSING (100%) |
 | Groq Cloud AI Engine               | openai/gpt-oss-120b         | LIVE AND OPERATIONAL |
-| NVIDIA NIM AI Engine               | nemotron-3-ultra-550b-a55b  | LIVE AND OPERATIONAL |
+| NVIDIA NIM AI Engine               | nvidia/nemotron-3-ultra-550b-a55b | LIVE AND OPERATIONAL |
 | Google Gemini AI Engine            | gemini-3.8-flash            | AUTHENTICATED (BILLING)
 | Automatic Multi-Provider Failover  | Gemini -> Groq -> NVIDIA    | VERIFIED LIVE        |
 | Deterministic Offline Engine       | Demo Rule-Based Matcher     | VERIFIED LIVE        |
@@ -224,11 +224,17 @@ QuestForge AI is fully built, self-contained, and operational. The remaining ite
    - *Verification:* All 6 tables, 18 RLS policies, auth signup triggers, and 17 live test scenarios verified. In-memory fallback is no longer active; live cloud persistence is running.
 3. **Phase 12: Production Deployment Preparation & Final Security Audit (100% COMPLETE):**
    - *Backend Authorization:* Fixed IDOR/service-role bypass via cryptographic Bearer JWT validation in `authMiddleware.js`, server-side scoping in `supabaseService.js`, and transient document scoping. Empirically proven via 20/20 test cases in `scripts/verify_backend_authorization.js`.
-   - *Deliverables Created:*
-     1. `PRODUCTION_DEPLOYMENT_REPORT.md` (Hosting comparison, free tier analysis, build/start architecture).
+   - *Supabase Backup Reality:* Documented that automated daily backups are unavailable on the Supabase Free plan. Documented manual CLI backup protocol (`supabase db dump`), local encryption, verification, and restore procedures.
+   - *AI Models Reconciled:* Documented exact verified model strings (`gemini-3.8-flash`, `openai/gpt-oss-120b`, `nvidia/nemotron-3-ultra-550b-a55b`).
+   - *Hosting Architecture Evaluated:* Evaluated Cloudflare Pages (Free, commercial permitted) vs Vercel (Hobby non-commercial restriction) and Railway Hobby (24/7 warm container, scalable RAM) vs Render Free (15-min sleep, 512MB RAM ceiling, Tesseract OCR OOM risk). Documented why Cloudflare Workers cannot run the Node.js/OCR backend.
+   - *SMTP Delivery:* Documented custom SMTP integration (Resend/SendGrid) to overcome Supabase free-tier 3–4 emails/hr rate limits.
+   - *Deliverables Created & Reconciled:*
+     1. `PRODUCTION_DEPLOYMENT_REPORT.md` (Hosting comparison, free tier analysis, build/start architecture, backup & SMTP guide).
      2. `PRODUCTION_SECURITY_AUDIT.md` (Complete authorization verification, RLS analysis, privacy and memory lifecycle audit).
-     3. `DOMAIN_CONFIGURATION_GUIDE.md` (Step-by-step DNS, CNAME, HTTPS, CORS, and Supabase Auth URL instructions).
-     4. `PRODUCTION_ENV_TEMPLATE.md` (Clean environment variable templates with zero secrets leaked).
-     5. `FINAL_LAUNCH_CHECKLIST.md` (Comprehensive release readiness classification).
+     3. `DEPLOYMENT_CHECKLIST.md` (Deployment matrix, backup protocol, reverse proxy, and environment audit).
+     4. `PRELAUNCH_CHECKLIST.md` (18-point pre-launch verification audit and readiness determination).
+     5. `DOMAIN_CONFIGURATION_GUIDE.md` (Step-by-step DNS, CNAME, HTTPS, CORS, and Supabase Auth URL instructions).
+     6. `PRODUCTION_ENV_TEMPLATE.md` (Clean environment variable templates with zero secrets leaked).
+     7. `FINAL_LAUNCH_CHECKLIST.md` (Comprehensive release readiness classification).
    - *SEO & Branding:* Created `robots.txt`, `sitemap.xml`, dynamic 404 `noindex` tag, verified SVG favicon and meta tags.
    - *Readiness Status:* Fully prepared for production release pending user approval on domain and hosting provider selection.
