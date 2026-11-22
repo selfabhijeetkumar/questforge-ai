@@ -14,7 +14,7 @@ export const AI_PROVIDERS_CONFIG = {
     name: 'Google Gemini',
     id: 'gemini',
     apiKey: process.env.GEMINI_API_KEY || '',
-    model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
+    model: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
     isConfigured: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim() !== ''),
   },
 
@@ -23,7 +23,7 @@ export const AI_PROVIDERS_CONFIG = {
     name: 'Groq Cloud',
     id: 'groq',
     apiKey: process.env.GROQ_API_KEY || '',
-    model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+    model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
     isConfigured: Boolean(process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim() !== ''),
   },
 
@@ -33,7 +33,7 @@ export const AI_PROVIDERS_CONFIG = {
     id: 'nvidia',
     apiKey: process.env.NVIDIA_API_KEY || '',
     baseUrl: process.env.NVIDIA_BASE_URL || 'https://integrate.api.nvidia.com/v1',
-    model: process.env.NVIDIA_MODEL || 'nvidia/llama-3.1-nemotron-70b-instruct',
+    model: process.env.NVIDIA_MODEL || 'nvidia/nemotron-3-ultra-550b-a55b',
     isConfigured: Boolean(process.env.NVIDIA_API_KEY && process.env.NVIDIA_API_KEY.trim() !== ''),
   },
 

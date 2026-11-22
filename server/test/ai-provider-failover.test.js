@@ -52,6 +52,20 @@ test('AI Status API: GET /api/ai/status returns sanitized provider information w
   assert.ok(!stringified.includes('token'))
 })
 
+test('AI Status API: POST /api/ai/test returns probe structure without exposing secrets', async () => {
+  const res = await fetch(`${baseUrl}/api/ai/test`, { method: 'POST' })
+  assert.equal(res.status, 200)
+  const json = await res.json()
+
+  assert.equal(json.status, 'success')
+  assert.ok(json.data.testResults)
+  assert.ok(json.data.providers)
+
+  const stringified = JSON.stringify(json)
+  assert.ok(!stringified.includes('apiKey'))
+  assert.ok(!stringified.includes('secret'))
+})
+
 // -----------------------------------------------------------------------------
 // 2. MOCKED MULTI-PROVIDER FAILOVER SEQUENCE TESTS
 // (Controlled testing of failure detection and provider handoff)
@@ -61,12 +75,12 @@ test('Failover Sequence (Scenario J): Gemini Quota Failure (429) -> Groq Success
   const mockGemini = {
     name: 'Google Gemini',
     id: 'gemini',
-    config: { model: 'gemini-1.5-flash' },
+    config: { model: 'gemini-3.8-flash' },
     isConfigured: () => true,
     generateStructuredResponse: async () => ({
       success: false,
       provider: 'gemini',
-      model: 'gemini-1.5-flash',
+      model: 'gemini-3.8-flash',
       errorCode: 'RATE_LIMITED',
       error: 'Resource has been exhausted (e.g. check quota).',
       retryable: false,
@@ -77,12 +91,12 @@ test('Failover Sequence (Scenario J): Gemini Quota Failure (429) -> Groq Success
   const mockGroq = {
     name: 'Groq Cloud',
     id: 'groq',
-    config: { model: 'llama-3.3-70b-versatile' },
+    config: { model: 'openai/gpt-oss-120b' },
     isConfigured: () => true,
     generateStructuredResponse: async () => ({
       success: true,
       provider: 'groq',
-      model: 'llama-3.3-70b-versatile',
+      model: 'openai/gpt-oss-120b',
       content: {
         fullName: 'Rahul Sharma',
         dob: '15/08/2004',
@@ -100,7 +114,7 @@ test('Failover Sequence (Scenario J): Gemini Quota Failure (429) -> Groq Success
   const mockNvidia = {
     name: 'NVIDIA NeMoTron 3 Ultra',
     id: 'nvidia',
-    config: { model: 'nvidia/llama-3.1-nemotron-70b-instruct' },
+    config: { model: 'nvidia/nemotron-3-ultra-550b-a55b' },
     isConfigured: () => true,
     generateStructuredResponse: async () => ({
       success: false,
@@ -141,7 +155,7 @@ test('Failover Sequence (Scenario K): Gemini (401) -> Groq (500) -> NVIDIA Succe
   const mockGemini = {
     name: 'Google Gemini',
     id: 'gemini',
-    config: { model: 'gemini-1.5-flash' },
+    config: { model: 'gemini-3.8-flash' },
     isConfigured: () => true,
     generateStructuredResponse: async () => ({
       success: false,
@@ -156,7 +170,7 @@ test('Failover Sequence (Scenario K): Gemini (401) -> Groq (500) -> NVIDIA Succe
   const mockGroq = {
     name: 'Groq Cloud',
     id: 'groq',
-    config: { model: 'llama-3.3-70b-versatile' },
+    config: { model: 'openai/gpt-oss-120b' },
     isConfigured: () => true,
     generateStructuredResponse: async () => ({
       success: false,
@@ -171,12 +185,12 @@ test('Failover Sequence (Scenario K): Gemini (401) -> Groq (500) -> NVIDIA Succe
   const mockNvidia = {
     name: 'NVIDIA NeMoTron 3 Ultra',
     id: 'nvidia',
-    config: { model: 'nvidia/llama-3.1-nemotron-70b-instruct' },
+    config: { model: 'nvidia/nemotron-3-ultra-550b-a55b' },
     isConfigured: () => true,
     generateStructuredResponse: async () => ({
       success: true,
       provider: 'nvidia',
-      model: 'nvidia/llama-3.1-nemotron-70b-instruct',
+      model: 'nvidia/nemotron-3-ultra-550b-a55b',
       content: {
         fullName: 'Priya Patel',
         dob: '22/11/2003',

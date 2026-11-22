@@ -78,6 +78,18 @@ export class GroqProvider {
           }
         }
 
+        if (response.status === 404 || msg.toLowerCase().includes('model') && msg.toLowerCase().includes('not found')) {
+          return {
+            success: false,
+            provider: this.id,
+            model: this.config.model,
+            errorCode: 'MODEL_UNSUPPORTED',
+            error: `Groq model "${this.config.model}" not found or decommissioned: ${msg}`,
+            retryable: false,
+            durationMs
+          }
+        }
+
         if (response.status === 429) {
           return {
             success: false,

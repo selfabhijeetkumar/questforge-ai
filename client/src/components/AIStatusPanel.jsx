@@ -4,17 +4,45 @@ import { Cpu, CheckCircle2, XCircle, AlertCircle, RefreshCw, KeyRound, ShieldAle
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
 function StatusBadge({ status }) {
-  if (status === 'READY') {
+  if (status === 'READY' || status === 'AUTHENTICATED' || status === 'VERIFIED') {
     return (
       <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-950 text-emerald-400 border border-emerald-800">
-        Ready
+        Authenticated & Ready
       </span>
     )
   }
-  if (status === 'COOLDOWN') {
+  if (status === 'CONFIGURED') {
+    return (
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-cyan-950 text-cyan-400 border border-cyan-800">
+        Configured (Untested)
+      </span>
+    )
+  }
+  if (status === 'AUTH_FAILED') {
+    return (
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-rose-950 text-rose-400 border border-rose-800">
+        Auth Failed
+      </span>
+    )
+  }
+  if (status === 'MODEL_UNAVAILABLE') {
+    return (
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-rose-950 text-rose-400 border border-rose-800">
+        Model Unavailable
+      </span>
+    )
+  }
+  if (status === 'RATE_LIMITED' || status === 'COOLDOWN') {
     return (
       <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-950 text-amber-400 border border-amber-800">
-        Cooldown
+        Rate Limited / Cooldown
+      </span>
+    )
+  }
+  if (status === 'TEMPORARILY_UNAVAILABLE') {
+    return (
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-950 text-amber-400 border border-amber-800">
+        Temporarily Unavailable
       </span>
     )
   }
@@ -71,7 +99,9 @@ function ProviderRow({ provider, priorityIndex, isPrimary }) {
 export function AIStatusPanel() {
   const [info, setInfo] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [testing, setTesting] = useState(false)
   const [error, setError] = useState(null)
+  const [testFeedback, setTestFeedback] = useState(null)
 
   const fetchStatus = () => {
     setLoading(true)
@@ -89,6 +119,25 @@ export function AIStatusPanel() {
       .catch(err => {
         setError(err.message || 'Failed to reach backend API')
         setLoading(false)
+      })
+  }
+
+  const runLiveTest = () => {
+    setTesting(true)
+    setTestFeedback(null)
+    fetch(`${API_BASE}/api/ai/test`, { method: 'POST' })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        return res.json()
+      })
+      .then(json => {
+        setTestFeedback(json.data?.testResults || null)
+        fetchStatus()
+        setTesting(false)
+      })
+      .catch(err => {
+        setError('Verification test failed: ' + err.message)
+        setTesting(false)
       })
   }
 
@@ -113,7 +162,7 @@ export function AIStatusPanel() {
       <span className="absolute bottom-1.5 left-2 font-mono text-[9px] text-cyan-500/40 select-none">+</span>
       <span className="absolute bottom-1.5 right-2 font-mono text-[9px] text-cyan-500/40 select-none">+</span>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 rounded-xl bg-navy-950 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
             <Cpu className="w-4 h-4" />
@@ -124,15 +173,29 @@ export function AIStatusPanel() {
           </div>
         </div>
 
-        <button
-          onClick={fetchStatus}
-          disabled={loading}
-          className="inline-flex items-center space-x-1.5 px-2.5 py-1 text-xs text-slate-400 hover:text-white bg-navy-950 border border-slate-800 hover:border-slate-700 rounded transition"
-          title="Refresh AI Provider Status"
-        >
-          <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
-        </button>
+        <div className="flex items-center space-x-2">
+          {configuredCount > 0 && (
+            <button
+              onClick={runLiveTest}
+              disabled={testing || loading}
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs text-cyan-400 hover:text-white bg-cyan-950/40 border border-cyan-500/40 hover:border-cyan-400 rounded transition font-mono"
+              title="Execute minimal live synthetic verification probe"
+            >
+              <RefreshCw className={`w-3 h-3 ${testing ? 'animate-spin' : ''}`} />
+              <span>{testing ? 'Probing...' : 'Verify Live Connectivity'}</span>
+            </button>
+          )}
+
+          <button
+            onClick={fetchStatus}
+            disabled={loading || testing}
+            className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 text-xs text-slate-400 hover:text-white bg-navy-950 border border-slate-800 hover:border-slate-700 rounded transition"
+            title="Refresh AI Provider Status"
+          >
+            <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {loading && !info && (
@@ -170,6 +233,23 @@ export function AIStatusPanel() {
               </span>
             </div>
           </div>
+
+          {testFeedback && (
+            <div className="p-3 rounded bg-navy-950/80 border border-cyan-500/30 text-xs space-y-1.5 font-mono">
+              <div className="flex items-center justify-between text-cyan-400 font-semibold">
+                <span>Live Verification Probe Results:</span>
+                <span className="text-[10px] text-slate-400">Just now</span>
+              </div>
+              {Object.entries(testFeedback).map(([id, res]) => (
+                <div key={id} className="flex items-center justify-between text-[11px] py-0.5 border-b border-slate-800/50 last:border-0">
+                  <span className="text-slate-300 capitalize font-medium">{id}:</span>
+                  <span className={res.success ? 'text-emerald-400' : 'text-rose-400'}>
+                    {res.status} {res.durationMs ? `(${res.durationMs}ms)` : ''} {res.error ? `// ${res.error}` : ''}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="divide-y divide-slate-800">
             {providerList.map((p, idx) => (

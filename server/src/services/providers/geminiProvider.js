@@ -113,6 +113,18 @@ export class GeminiProvider {
         }
       }
 
+      if (errMsg.includes('404') || errMsg.toLowerCase().includes('not found') || errMsg.toLowerCase().includes('unsupported model') || errMsg.toLowerCase().includes('is not supported')) {
+        return {
+          success: false,
+          provider: this.id,
+          model: this.config.model,
+          errorCode: 'MODEL_UNSUPPORTED',
+          error: `Gemini model "${this.config.model}" not found or unsupported: ${errMsg}`,
+          retryable: false,
+          durationMs
+        }
+      }
+
       if (errMsg.includes('401') || errMsg.includes('403') || errMsg.toLowerCase().includes('api key not valid') || errMsg.toLowerCase().includes('permission denied')) {
         return {
           success: false,
