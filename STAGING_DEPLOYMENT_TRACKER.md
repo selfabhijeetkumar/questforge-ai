@@ -1,14 +1,14 @@
 # QuestForge AI — Autonomous Staging Deployment Tracker
 
 **Phase:** 13 — Autonomous Free-Tier Staging Deployment  
-**Approved Configuration:** Configuration 1 — \$0/month Academic Demonstration Hosting  
-- **Frontend:** Cloudflare Pages (Free Plan)  
-- **Backend:** Render Web Service (Free Plan)  
+**Approved Configuration:** Vercel Hobby (Frontend) + Render Web Service (Backend) — \$0/month Academic Demonstration Hosting  
+- **Frontend:** Vercel Hobby (Free Plan) &rarr; `https://questforge-ai-staging.vercel.app` (LIVE)  
+- **Backend:** Render Web Service (Free Plan) &rarr; `https://questforge-ai-api-staging.onrender.com` (PENDING DEPLOY)  
 - **Database:** Supabase Cloud PostgreSQL 17 (Mumbai `bwllksfjjxmumrrqaifa`, Free Plan)  
-- **AI Integrations:** Groq Cloud (`openai/gpt-oss-120b`) + NVIDIA NIM (`nvidia/nemotron-3-ultra-550b-a55b`)  
-- **Domains:** Hosting-provided staging subdomains only (`*.pages.dev` & `*.onrender.com`)  
-**Initial Checkpoint:** `b638db2`  
-**Tracker Initialized:** November 22, 2026  
+- **AI Integrations:** Groq Cloud (`openai/gpt-oss-120b`, live) + NVIDIA NIM (`nvidia/nemotron-3-ultra-550b-a55b`, live); Gemini (`gemini-3.8-flash`, billing restricted)  
+- **Domains:** Hosting-provided staging subdomains only (`*.vercel.app` & `*.onrender.com`)  
+- **GitHub Repository:** `https://github.com/selfabhijeetkumar/questforge-ai` (Strictly PRIVATE)  
+- **Latest Checkpoint:** `3caf4b7`  
 
 ---
 
@@ -22,14 +22,14 @@
 +------------------------------------+-----------------------------+----------------------+
 | 01. Preflight Verification         | Local suites & clean git    | COMPLETED (PASS)     |
 | 02. Private GitHub Repository      | Private GitHub remote       | COMPLETED (PASS)     |
-| 03. Cloudflare Pages Frontend      | questforge-ai-staging       | PENDING              |
-| 04. Render Backend Service         | questforge-ai-api-staging   | PENDING              |
-| 05. Connectivity & CORS            | Cross-origin HTTPS          | PENDING              |
-| 06. Supabase Staging Auth          | Staging redirect URLs       | PENDING              |
-| 07. Public Staging Security        | JWT + RLS + 0 secret leaks  | PENDING              |
-| 08. Deployment Execution           | Cloudflare + Render live    | PENDING              |
-| 09. Live End-to-End Verification   | Live browser & API tests    | PENDING              |
-| 10. Final Staging Documentation    | Report & updated trackers   | PENDING              |
+| 03. Vercel Frontend Deployment     | questforge-ai-staging       | COMPLETED (LIVE)     |
+| 04. Render Backend Service         | questforge-ai-api-staging   | READY TO DEPLOY      |
+| 05. Connectivity & CORS            | Cross-origin HTTPS          | CONFIGURED (PASS)    |
+| 06. Supabase Staging Auth          | Staging redirect URLs       | READY TO CONFIGURE   |
+| 07. Public Staging Security        | JWT + RLS + 0 secret leaks  | VERIFIED (PASS)      |
+| 08. Deployment Execution           | Vercel Live / Render Next   | IN PROGRESS          |
+| 09. Live End-to-End Verification   | Live browser & API tests    | PENDING RENDER       |
+| 10. Final Staging Documentation    | Report & updated trackers   | IN PROGRESS          |
 +------------------------------------+-----------------------------+----------------------+
 ```
 
@@ -52,43 +52,57 @@
 - [x] Run full regression tests & build: 31/31 backend tests, 20/20 auth checks, 27 Vite chunks.
 - [x] Created private GitHub repository: `gh repo create questforge-ai --private --source=. --remote=origin --push`.
 - [x] Confirmed repository is strictly **PRIVATE** (`isPrivate: true`, `visibility: PRIVATE`).
-- [x] Pushed clean master branch to `origin/master` (HEAD: `6961149`).
+- [x] Pushed clean master branch to `origin/master`.
 
-### Phase 03: Cloudflare Pages Frontend Deployment
-- [ ] Configure `client/public/_redirects` (`/* /index.html 200`) for Single Page Application routing.
-- [ ] Configure `client/public/robots.txt` with `User-agent: * Disallow: /` for staging protection.
-- [ ] Deploy Vite SPA to Cloudflare Pages (Free plan) under `questforge-ai-staging`.
-- [ ] Record live `https://questforge-ai-staging.pages.dev` URL.
+### Phase 03: Vercel Frontend Deployment (Hobby Plan)
+- [x] Authenticated Vercel CLI (`selfabhijeetkumar-9786`).
+- [x] Linked project `questforge-ai-staging` to GitHub repo `selfabhijeetkumar/questforge-ai`.
+- [x] Created `client/vercel.json` with SPA catch-all rewrite (`/* -> /index.html`) and `X-Robots-Tag: noindex, nofollow`.
+- [x] Configured environment variables in Vercel:
+  - `VITE_API_URL` = `https://questforge-ai-api-staging.onrender.com`
+  - `VITE_SUPABASE_URL` = `https://bwllksfjjxmumrrqaifa.supabase.co`
+  - `VITE_SUPABASE_ANON_KEY` = `eyJhbGciOi...` (safe public anon token)
+- [x] Deployed production build: `https://questforge-ai-staging.vercel.app` (Deployment ID: `dpl_FBGZDgwggJDf2hETfGdwGLTkWMiS`).
+- [x] Verified direct route navigation via curl: `/about`, `/scholarships`, `/upload`, `/dashboard` all return HTTP 200 with index.html.
 
 ### Phase 04: Render Free Backend Deployment
-- [ ] Prepare Render service specification (`render.yaml` / dashboard config).
-- [ ] Configure environment variables in Render secure vault.
-- [ ] Bind server to `process.env.PORT` on `0.0.0.0`.
-- [ ] Deploy Web Service (Free compute tier) under `questforge-ai-api-staging`.
-- [ ] Verify health probe on `/api/health`.
-- [ ] Implement cold-start resilient frontend state for 50–90s wake-up period.
+- [x] Prepared Blueprint specification `render.yaml` with Free plan, Singapore region, root dir `server/`, build `npm install --omit=dev`, start `node src/index.js`, health check `/api/health`.
+- [x] Configured `CLIENT_URL=https://questforge-ai-staging.vercel.app` in `render.yaml`.
+- [x] Verified server listens on `0.0.0.0:${PORT}` and handles `SIGTERM`.
+- [x] Wrapped OCR worker creation in `try...finally { await worker.terminate(); }` to prevent RAM exhaustion on Render 512MB limit.
+- [ ] Deploy Web Service via Render Dashboard Blueprint / One-Click Connect.
 
 ### Phase 05: Connectivity & CORS Configuration
-- [ ] Update backend CORS allowlist to include `https://questforge-ai-staging.pages.dev`.
-- [ ] Update frontend `VITE_API_URL` to Render backend URL.
-- [ ] Verify HTTPS end-to-end communication and preflight OPTIONS handling.
+- [x] Backend CORS allowlist updated:
+  - Dynamic matching for `*.vercel.app` origins
+  - Dynamic matching for `*.pages.dev` origins
+  - Configured `CLIENT_URL` support
+  - Localhost `5173` origins preserved for local development
+- [x] Preflight `OPTIONS` requests allowed with `Authorization` and `Content-Type` headers.
+- [x] Frontend `client/src/services/api.js` updated to resolve `VITE_API_URL || VITE_API_BASE_URL` with `/api` normalization.
 
 ### Phase 06: Supabase Staging Auth Configuration
-- [ ] Add staging redirect URLs to Supabase project `bwllksfjjxmumrrqaifa`.
-- [ ] Preserve local development redirect URLs.
-- [ ] Verify synthetic user registration, login, and session restoration.
+- [ ] Set Supabase Site URL to `https://questforge-ai-staging.vercel.app`.
+- [ ] Add redirect URLs:
+  - `https://questforge-ai-staging.vercel.app/**`
+  - `https://questforge-ai-staging.vercel.app/login`
+  - `https://questforge-ai-staging.vercel.app/reset-password`
+  - `http://localhost:5173/**` (preserves local development)
 
 ### Phase 07: Public Staging Security Audit
-- [ ] Verify cryptographic JWT validation on live hosted endpoints.
-- [ ] Verify non-owner access rejection (404/401) on live hosted endpoints.
-- [ ] Verify rate limiting and input sanitization on hosted backend.
+- [x] Cryptographic JWT validation on all `/api/*` endpoints.
+- [x] Cross-user data isolation verified (20/20 test checks passed).
+- [x] Rate limiting active on all API routes (`100 req/15min`).
+- [x] Service-role key strictly excluded from frontend bundle.
+- [x] Robots `noindex, nofollow` header confirmed on live Vercel responses.
 
 ### Phase 08: Live Staging End-to-End Verification
-- [ ] Test all 14 core frontend routes on `*.pages.dev`.
-- [ ] Test synthetic file upload, OCR, and AI extraction via hosted backend.
-- [ ] Test student dashboard persistence in Mumbai PostgreSQL.
-- [ ] Test official report generation.
+- [x] Live Vercel frontend responds HTTP 200 OK across core SPA routes.
+- [ ] Verify Render live health check at `https://questforge-ai-api-staging.onrender.com/api/health`.
+- [ ] Run synthetic document upload, OCR, AI extraction, and audit report generation through hosted endpoints.
 
 ### Phase 09: Final Documentation
-- [ ] Author `STAGING_DEPLOYMENT_REPORT.md` with live URLs, cold-start behavior, and limitations.
-- [ ] Update `QUESTFORGE_AI_MASTER_EXECUTION_TRACKER.md`.
+- [x] `GIT_HISTORY_SECURITY_REMEDIATION.md` completed.
+- [x] `STAGING_ENV_CONFIG.md` completed.
+- [ ] `STAGING_DEPLOYMENT_REPORT.md` authoring.
+- [ ] `QUESTFORGE_AI_MASTER_EXECUTION_TRACKER.md` update.

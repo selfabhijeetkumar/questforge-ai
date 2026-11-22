@@ -36,6 +36,8 @@ QuestForge AI has undergone a full-stack, enterprise-grade engineering and desig
 | Production Frontend Build (Vite 6)  | 27 Code-Split Chunks        | 100% OPERATIONAL     |
 | Security & Zero-Secret Compliance  | Git, Bundles, Logs, APIs    | 100% CLEAN (0 LEAKS) |
 | Phase 12 Deployment Deliverables   | 5 Comprehensive Documents   | 100% COMPLETE        |
+| Phase 13 Vercel Frontend Staging   | questforge-ai-staging.vercel.app | 100% LIVE (VERIFIED) |
+| Phase 13 Render Backend Blueprint  | render.yaml / Free Tier     | READY FOR PROVISION  |
 +------------------------------------+-----------------------------+----------------------+
 ```
 
@@ -238,3 +240,13 @@ QuestForge AI is fully built, self-contained, and operational. The remaining ite
      7. `FINAL_LAUNCH_CHECKLIST.md` (Comprehensive release readiness classification).
    - *SEO & Branding:* Created `robots.txt`, `sitemap.xml`, dynamic 404 `noindex` tag, verified SVG favicon and meta tags.
    - *Readiness Status:* Fully prepared for production release pending user approval on domain and hosting provider selection.
+
+4. **Phase 13: Vercel Frontend + Render Backend Staging Deployment (IN PROGRESS):**
+   - *Architecture Selected:* Vercel Hobby (Frontend) + Render Web Service (Backend) + Supabase Cloud Mumbai (`bwllksfjjxmumrrqaifa`) — \$0/month Academic Demonstration Staging.
+   - *Git History Sanitization:* Completely excised historical secrets from `.env.example` and `server/.env.example` using `git-filter-repo` with 0 residual secrets, full reflog expiry, and aggressive garbage collection.
+   - *Private GitHub Repository:* Created strictly PRIVATE remote `https://github.com/selfabhijeetkumar/questforge-ai` tracking `master`.
+   - *Vercel Frontend Deployed:* Live at `https://questforge-ai-staging.vercel.app` (Deployment ID: `dpl_FBGZDgwggJDf2hETfGdwGLTkWMiS`).
+   - *SPA Routing & Staging Protection:* Configured `client/vercel.json` with `/* -> /index.html 200` rewrite and `X-Robots-Tag: noindex, nofollow` to prevent indexing. Verified 200 OK responses across core routes (`/`, `/about`, `/scholarships`, `/upload`, `/dashboard`).
+   - *Render Blueprint Created:* Authored and pushed `render.yaml` with Free tier, Singapore region, and strict memory limits.
+   - *CORS Dynamic Allowlist:* Server configured to dynamically accept `*.vercel.app` and `*.pages.dev` origins.
+   - *Deliverables Authoring:* Created `GIT_HISTORY_SECURITY_REMEDIATION.md`, `STAGING_ENV_CONFIG.md`, `STAGING_DEPLOYMENT_TRACKER.md`, and `STAGING_DEPLOYMENT_REPORT.md`.

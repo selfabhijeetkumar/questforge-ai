@@ -1,75 +1,61 @@
 # QuestForge AI — Staging Deployment Configuration Guide
 
 **Environment:** Academic Demonstration Staging (\$0/month)  
-**Frontend Platform:** Cloudflare Pages (Free Plan)  
-**Backend Platform:** Render Web Service (Free Plan)  
+**Frontend Platform:** Vercel Hobby (Free Plan) &rarr; `https://questforge-ai-staging.vercel.app` (LIVE)  
+**Backend Platform:** Render Web Service (Free Plan) &rarr; `https://questforge-ai-api-staging.onrender.com`  
 **Database:** Supabase Cloud PostgreSQL 17 (Mumbai `bwllksfjjxmumrrqaifa`)  
-**Repository:** [https://github.com/selfabhijeetkumar/questforge-ai](https://github.com/selfabhijeetkumar/questforge-ai) (PRIVATE)  
+**GitHub Repository:** [https://github.com/selfabhijeetkumar/questforge-ai](https://github.com/selfabhijeetkumar/questforge-ai) (PRIVATE)  
 
 ---
 
-## 1. Render Backend Deployment (`questforge-ai-api-staging`)
+## 1. Vercel Frontend Deployment (COMPLETED & VERIFIED LIVE)
 
-### Step-by-Step via Render Dashboard:
-1. Go to [dashboard.render.com](https://dashboard.render.com) and sign in.
-2. Click **New +** &rarr; **Blueprint** (or **Web Service**).
-3. Connect your GitHub account and select repository `selfabhijeetkumar/questforge-ai`.
-4. If using **Blueprint**, Render will automatically detect `render.yaml` at the root of the repository.
-5. If creating manually as a **Web Service**:
-   - **Name:** `questforge-ai-api-staging`
-   - **Region:** `Singapore` (closest free tier region to Mumbai database)
-   - **Branch:** `master`
-   - **Root Directory:** `server`
-   - **Runtime:** `Node`
-   - **Build Command:** `npm install --omit=dev`
-   - **Start Command:** `node src/index.js`
-   - **Instance Type:** `Free`
-   - **Health Check Path:** `/api/health`
-6. Under **Environment Variables**, configure the following (exact values are in your local `server/.env`):
+- **Production URL:** `https://questforge-ai-staging.vercel.app`
+- **Framework:** Vite 6 + React 18 + Three.js
+- **Routing:** Single Page Application (SPA) handled by `client/vercel.json` (`/* -> /index.html 200`)
+- **Staging Robots Directive:** `X-Robots-Tag: noindex, nofollow` active on all responses
+- **Configured Environment Variables (in Vercel):**
+  - `VITE_API_URL` = `https://questforge-ai-api-staging.onrender.com`
+  - `VITE_SUPABASE_URL` = `https://bwllksfjjxmumrrqaifa.supabase.co`
+  - `VITE_SUPABASE_ANON_KEY` = *(safe public publishable key)*
 
-| Key | Recommended Value | Notes |
+---
+
+## 2. Render Backend Deployment (`questforge-ai-api-staging`)
+
+### Step-by-Step Deployment (2 Minutes):
+1. Open [dashboard.render.com](https://dashboard.render.com) and log in (or click **Sign in with GitHub**).
+2. Click **New +** &rarr; **Blueprint** (Recommended):
+   - Connect your GitHub account and select repository `selfabhijeetkumar/questforge-ai`.
+   - Render will automatically detect `render.yaml` in the root of the repository!
+   - It will automatically prefill:
+     - Name: `questforge-ai-api-staging`
+     - Runtime: `Node`
+     - Plan: `Free`
+     - Region: `Singapore` (closest free tier region to Mumbai database)
+     - Root Directory: `server`
+     - Build Command: `npm install --omit=dev`
+     - Start Command: `node src/index.js`
+     - Health Check: `/api/health`
+     - `NODE_ENV`: `production`
+     - `CLIENT_URL`: `https://questforge-ai-staging.vercel.app`
+3. Render will prompt you for the values of the un-synced environment variables.  
+   **Copy these exact values from your local `server/.env` file:**
+
+| Variable Key | Source in `server/.env` | Notes |
 |---|---|---|
-| `NODE_ENV` | `production` | Enables production security & logging |
-| `PORT` | `5000` | Render dynamically routes traffic to this port |
-| `CLIENT_URL` | `https://questforge-ai-staging.pages.dev` | Staging Cloudflare Pages origin |
-| `SUPABASE_URL` | `https://bwllksfjjxmumrrqaifa.supabase.co` | Supabase Cloud Mumbai endpoint |
-| `SUPABASE_ANON_KEY` | *(copy from server/.env)* | Supabase public anonymous key |
-| `SUPABASE_SERVICE_ROLE_KEY` | *(copy from server/.env)* | Supabase confidential service role key |
-| `GROQ_API_KEY` | *(copy from server/.env)* | Groq Cloud operational API key |
-| `NVIDIA_API_KEY` | *(copy from server/.env)* | NVIDIA NIM operational API key |
-| `GEMINI_API_KEY` | *(copy from server/.env)* | Google AI Studio authenticated key |
+| `SUPABASE_URL` | `SUPABASE_URL` | `https://bwllksfjjxmumrrqaifa.supabase.co` |
+| `SUPABASE_ANON_KEY` | `SUPABASE_ANON_KEY` | Public publishable token |
+| `SUPABASE_SERVICE_ROLE_KEY` | `SUPABASE_SERVICE_ROLE_KEY` | Confidential server-only key |
+| `GROQ_API_KEY` | `GROQ_API_KEY` | Live operational Groq Cloud key |
+| `NVIDIA_API_KEY` | `NVIDIA_API_KEY` | Live operational NVIDIA NIM key |
+| `GEMINI_API_KEY` | `GEMINI_API_KEY` | Authenticated Google AI Studio key |
 
-7. Click **Create Web Service**.
-8. Once deployment finishes, verify health check at:  
+4. Click **Apply** (or **Create Web Service**).
+5. Render will provision and deploy your service at:  
+   `https://questforge-ai-api-staging.onrender.com`
+6. Once deployed, verify health at:  
    `https://questforge-ai-api-staging.onrender.com/api/health`
-
----
-
-## 2. Cloudflare Pages Frontend Deployment (`questforge-ai-staging`)
-
-### Step-by-Step via Cloudflare Dashboard:
-1. Go to [dash.cloudflare.com](https://dash.cloudflare.com) and sign in.
-2. Navigate to **Workers & Pages** &rarr; **Create application** &rarr; **Pages** &rarr; **Connect to Git**.
-3. Select your GitHub account `selfabhijeetkumar` and repository `questforge-ai`.
-4. Set up the build configuration:
-   - **Project Name:** `questforge-ai-staging`
-   - **Production Branch:** `master`
-   - **Framework Preset:** `Vite`
-   - **Root Directory:** `client`
-   - **Build Command:** `npm run build`
-   - **Build Output Directory:** `dist`
-5. Under **Environment Variables**, add:
-
-| Variable Name | Value |
-|---|---|
-| `VITE_API_URL` | `https://questforge-ai-api-staging.onrender.com` |
-| `VITE_SUPABASE_URL` | `https://bwllksfjjxmumrrqaifa.supabase.co` |
-| `VITE_SUPABASE_ANON_KEY` | *(copy from client/.env)* |
-
-6. Click **Save and Deploy**.
-7. Cloudflare Pages will build the SPA and deploy to:  
-   `https://questforge-ai-staging.pages.dev`
-   *(SPA routing fallback `/* /index.html 200` is already configured in `client/public/_redirects`).*
 
 ---
 
@@ -78,18 +64,24 @@
 In the Supabase Dashboard ([supabase.com/dashboard/project/bwllksfjjxmumrrqaifa](https://supabase.com/dashboard/project/bwllksfjjxmumrrqaifa)):
 1. Navigate to **Authentication** &rarr; **URL Configuration**.
 2. Set **Site URL** to:
-   `https://questforge-ai-staging.pages.dev`
-3. In **Redirect URLs**, ensure the following are listed:
-   - `https://questforge-ai-staging.pages.dev/**`
-   - `https://questforge-ai-staging.pages.dev/login`
-   - `https://questforge-ai-staging.pages.dev/reset-password`
-   - `http://localhost:5173/**` (preserves local development)
+   ```
+   https://questforge-ai-staging.vercel.app
+   ```
+3. Under **Redirect URLs**, add the following URLs:
+   ```
+   https://questforge-ai-staging.vercel.app/**
+   https://questforge-ai-staging.vercel.app/login
+   https://questforge-ai-staging.vercel.app/reset-password
+   http://localhost:5173/**
+   ```
+   *(Note: `http://localhost:5173/**` preserves local development access).*
 4. Click **Save**.
 
 ---
 
-## 4. Alternative: Autonomous Deployment via CLI Tokens
+## 4. Render Free-Tier Characteristics to Keep in Mind
 
-If you prefer autonomous CLI deployment without using the browser:
-- Provide `CLOUDFLARE_API_TOKEN` & `CLOUDFLARE_ACCOUNT_ID` -> Deploys frontend immediately via `wrangler pages deploy`.
-- Provide `RENDER_API_KEY` -> Provisions backend immediately via Render REST API.
+- **Inactivity Spin-Down:** Render spins down free web services after 15 minutes of inactivity.
+- **Cold Start:** The first request after spin-down takes ~50–90 seconds while the container initializes.
+- **Memory Ceiling:** 512 MB RAM limit. Tesseract OCR workers are explicitly terminated in `finally` blocks to release memory immediately.
+- **No Keep-Alives:** As per policy, no artificial pings are implemented.
