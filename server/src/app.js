@@ -48,6 +48,18 @@ app.use(cors({
 app.use(express.json({ limit: '15mb' }))
 app.use(express.urlencoded({ extended: true, limit: '15mb' }))
 
+// Root Service Index & Health Discovery
+app.get('/', (req, res) => {
+  res.status(200).json({
+    service: 'QuestForge AI Backend Engine',
+    status: 'operational',
+    version: '1.0.0',
+    mode: config.isDemonstrationMode ? 'Deterministic Demonstration Mode' : 'AI-Connected Mode',
+    healthCheck: '/api/health',
+    frontendUrl: config.clientUrl || 'https://questforge-ai-staging.vercel.app'
+  })
+})
+
 // Rate limiting on /api routes
 app.use('/api', apiLimiter)
 
