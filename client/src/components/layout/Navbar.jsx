@@ -42,7 +42,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1.5">
+          <nav className="hidden lg:flex items-center space-x-1.5">
             {navItems.map((item) => {
               const Icon = item.icon
               return (
@@ -55,7 +55,7 @@ export function Navbar() {
           </nav>
 
           {/* Right Action CTA */}
-          <div className="hidden md:flex items-center space-x-3">
+          <div className="hidden lg:flex items-center space-x-3">
             <Link
               to="/about"
               className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-300 hover:text-white bg-navy-900/80 hover:bg-navy-800 border border-slate-800 hover:border-cyan-500/40 transition-all"
@@ -79,7 +79,7 @@ export function Navbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="flex md:hidden">
+          <div className="flex lg:hidden">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -94,7 +94,7 @@ export function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-slate-800 bg-navy-900/95 backdrop-blur-xl px-4 pt-2 pb-5 space-y-1.5">
+        <div className="lg:hidden border-b border-slate-800 bg-navy-900/95 backdrop-blur-xl px-4 pt-2 pb-5 space-y-1.5">
           {navItems.map((item) => {
             const Icon = item.icon
             const isActive = location.pathname === item.path

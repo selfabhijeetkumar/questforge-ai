@@ -36,3 +36,12 @@ Thumbs.db
 
 # Existing isolated submodules/tools
 gemini-web2api/
+
+# Screenshot verification artifacts (not source)
+screenshots/
+screenshot.png
+*.tmp-chrome/
+
+# Chrome headless temp profile
+.tmp-chrome/
+.chrome-headless/
