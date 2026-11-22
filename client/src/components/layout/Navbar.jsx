@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { ShieldCheck, Compass, UploadCloud, LayoutDashboard, Menu, X, Info, Cpu } from 'lucide-react'
-import { Badge } from '../common/Badge'
+import { Compass, UploadCloud, LayoutDashboard, Menu, X, Info, Cpu, ArrowUpRight } from 'lucide-react'
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -15,41 +14,40 @@ export function Navbar() {
   ]
 
   const linkClass = ({ isActive }) =>
-    `inline-flex items-center text-sm font-medium transition-colors px-3 py-1.5 rounded-md ${
+    `inline-flex items-center text-xs uppercase tracking-wider font-medium transition-all px-3 py-2 rounded-lg ${
       isActive
-        ? 'text-white bg-navy-800 border border-slate-700'
-        : 'text-slate-300 hover:text-white hover:bg-navy-800/60'
+        ? 'text-cyan-400 bg-navy-800/90 border border-cyan-500/30 shadow-[0_0_12px_rgba(0,240,255,0.15)]'
+        : 'text-slate-300 hover:text-white hover:bg-navy-800/50'
     }`
 
   return (
-    <header className="sticky top-0 z-40 bg-navy-950/95 backdrop-blur-md border-b border-slate-800">
+    <header className="sticky top-0 z-40 bg-navy-950/90 backdrop-blur-xl border-b border-slate-800/80 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-18 py-3">
           {/* Logo & Product Identification */}
-          <Link to="/" className="flex items-center space-x-3 group">
-            <div className="h-9 w-9 rounded-lg bg-brand-600 flex items-center justify-center text-white font-bold text-sm tracking-wider shadow-sm border border-brand-500">
+          <Link to="/" className="flex items-center space-x-3.5 group">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-navy-800 to-navy-900 flex items-center justify-center text-cyan-400 font-headline font-bold text-sm tracking-wider shadow-[0_0_15px_rgba(0,240,255,0.2)] border border-cyan-500/40 group-hover:border-cyan-400 transition-colors">
               QF
             </div>
             <div className="flex flex-col">
               <div className="flex items-center space-x-2">
-                <span className="font-bold text-base tracking-tight text-white group-hover:text-brand-300 transition-colors">
-                  QUESTFORGE AI
+                <span className="font-headline font-bold text-base tracking-tight text-white group-hover:text-cyan-300 transition-colors">
+                  QUESTFORGE <span className="text-cyan-400 font-medium text-xs tracking-widest uppercase ml-1 px-1.5 py-0.5 rounded bg-navy-800 border border-cyan-500/20">AI</span>
                 </span>
-                <Badge variant="teal">SEC MVP</Badge>
               </div>
-              <span className="text-[11px] text-slate-400 tracking-normal hidden sm:block">
-                Scholarship Application Readiness Assistant
+              <span className="text-[11px] text-slate-400 font-mono tracking-tight hidden sm:block">
+                Level Up Your Scholarship Application
               </span>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
+          <nav className="hidden md:flex items-center space-x-1.5">
             {navItems.map((item) => {
               const Icon = item.icon
               return (
                 <NavLink key={item.path} to={item.path} className={linkClass}>
-                  <Icon className="w-4 h-4 mr-1.5 text-slate-400" />
+                  <Icon className="w-3.5 h-3.5 mr-1.5 text-slate-400" />
                   {item.name}
                 </NavLink>
               )
@@ -60,17 +58,23 @@ export function Navbar() {
           <div className="hidden md:flex items-center space-x-3">
             <Link
               to="/about"
-              className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-navy-900 hover:bg-navy-800 border border-slate-800 hover:border-slate-700 transition-colors"
+              className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-300 hover:text-white bg-navy-900/80 hover:bg-navy-800 border border-slate-800 hover:border-cyan-500/40 transition-all"
               title="Multi-Provider AI Status & Failover"
             >
-              <Cpu className="w-3.5 h-3.5 text-teal-400" />
-              <span className="hidden lg:inline">AI Status</span>
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+              </span>
+              <Cpu className="w-3.5 h-3.5 text-cyan-400 ml-0.5" />
+              <span className="text-[11px] font-mono text-slate-300">AI Status</span>
             </Link>
+
             <Link
-              to="/scholarships"
-              className="inline-flex items-center px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 hover:bg-brand-500 text-white border border-brand-500 transition-colors shadow-sm"
+              to="/upload"
+              className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-lg text-xs font-headline font-semibold uppercase tracking-wider bg-cyan-500 hover:bg-cyan-400 text-navy-950 shadow-[0_0_20px_rgba(0,240,255,0.35)] transition-all transform hover:-translate-y-0.5 active:translate-y-0"
             >
-              Start Readiness Audit
+              <span>Launch Audit</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
@@ -90,7 +94,7 @@ export function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-slate-800 bg-navy-900 px-4 pt-2 pb-4 space-y-1">
+        <div className="md:hidden border-b border-slate-800 bg-navy-900/95 backdrop-blur-xl px-4 pt-2 pb-5 space-y-1.5">
           {navItems.map((item) => {
             const Icon = item.icon
             const isActive = location.pathname === item.path
@@ -99,24 +103,25 @@ export function Navbar() {
                 key={item.path}
                 to={item.path}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${
+                className={`flex items-center px-3.5 py-2.5 rounded-lg text-xs uppercase tracking-wider font-medium ${
                   isActive
-                    ? 'text-white bg-navy-800 border border-slate-700'
+                    ? 'text-cyan-400 bg-navy-800 border border-cyan-500/30'
                     : 'text-slate-300 hover:text-white hover:bg-navy-800/60'
                 }`}
               >
-                <Icon className="w-4 h-4 mr-2 text-slate-400" />
+                <Icon className="w-4 h-4 mr-2.5 text-slate-400" />
                 {item.name}
               </Link>
             )
           })}
           <div className="pt-2">
             <Link
-              to="/scholarships"
+              to="/upload"
               onClick={() => setMobileMenuOpen(false)}
-              className="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold bg-brand-600 text-white"
+              className="w-full inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-headline font-semibold uppercase tracking-wider bg-cyan-500 text-navy-950 shadow-[0_0_20px_rgba(0,240,255,0.3)]"
             >
-              Start Readiness Audit
+              <span>Launch Readiness Audit</span>
+              <ArrowUpRight className="w-4 h-4" />
             </Link>
           </div>
         </div>

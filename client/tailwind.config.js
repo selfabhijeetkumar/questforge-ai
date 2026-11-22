@@ -30,10 +30,20 @@ export default {
           500: '#0EA5E9',
           600: '#0284C7',
           700: '#0369A1',
-        }
+        },
+        cyan: {
+          300: '#68F5FF',
+          400: '#38BDF8',
+          500: '#00F0FF',
+          600: '#00D4E6',
+        },
+        electric: '#3A86FF',
+        obsidian: '#060A14',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        headline: ['"Space Grotesk"', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
       }
     },
   },

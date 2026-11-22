@@ -106,15 +106,21 @@ export function AIStatusPanel() {
   const totalCount = providerList.length
 
   return (
-    <div className="bg-navy-900 border border-slate-800 rounded-lg p-5 space-y-4">
+    <div className="relative rounded-xl bg-navy-900/80 backdrop-blur-md border border-slate-800/90 hover:border-cyan-500/30 p-5 sm:p-6 space-y-4">
+      {/* Corner Brackets */}
+      <span className="absolute top-1.5 left-2 font-mono text-[9px] text-cyan-500/40 select-none">+</span>
+      <span className="absolute top-1.5 right-2 font-mono text-[9px] text-cyan-500/40 select-none">+</span>
+      <span className="absolute bottom-1.5 left-2 font-mono text-[9px] text-cyan-500/40 select-none">+</span>
+      <span className="absolute bottom-1.5 right-2 font-mono text-[9px] text-cyan-500/40 select-none">+</span>
+
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div className="w-7 h-7 rounded bg-brand-500/10 border border-brand-500/30 flex items-center justify-center">
-            <Cpu className="w-4 h-4 text-brand-400" />
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-xl bg-navy-950 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+            <Cpu className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-white">AI Provider Infrastructure</h3>
-            <p className="text-[11px] text-slate-400">Multi-provider failover: Gemini &rarr; Groq &rarr; NVIDIA NIM</p>
+            <h3 className="text-sm font-headline font-semibold text-white">AI Provider Infrastructure</h3>
+            <p className="text-[11px] font-mono text-slate-400">Multi-provider failover: Gemini &rarr; Groq &rarr; NVIDIA NIM</p>
           </div>
         </div>
 
