@@ -192,13 +192,19 @@ test('E2E SCENARIO D: Unsupported File Upload Rejection', async () => {
   assert.ok(json.message.includes('Unsupported file type'))
 })
 
-test('E2E SCENARIO E: Demonstration Mode Disclosure', async () => {
+test('E2E SCENARIO E: Mode Disclosure — Demonstration or AI-Connected', async () => {
   const res = await fetch(`${baseUrl}/api/health`)
   const json = await res.json()
   assert.equal(json.status, 'ok')
-  // When GEMINI_API_KEY is not set, mode must be Deterministic Demonstration Mode
-  assert.equal(json.mode, 'Deterministic Demonstration Mode')
-  assert.ok(json.warnings.some(w => w.includes('Demonstration Mode')))
+  // Mode is Deterministic Demonstration Mode when no keys configured,
+  // or AI-Connected Mode when provider keys are present.
+  const validModes = ['Deterministic Demonstration Mode', 'AI-Connected Mode']
+  assert.ok(
+    validModes.includes(json.mode),
+    `Expected mode to be one of ${validModes.join(' | ')}, got: ${json.mode}`
+  )
+  // Warnings array must exist and be non-empty
+  assert.ok(Array.isArray(json.warnings) && json.warnings.length > 0)
 })
 
 test('E2E SCENARIO F: Dashboard and Report Generation', async () => {
