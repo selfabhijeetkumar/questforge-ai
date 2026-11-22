@@ -1,4 +1,4 @@
-﻿import pdf from 'pdf-parse'
+import pdf from 'pdf-parse'
 import Tesseract from 'tesseract.js'
 import fs from 'fs'
 import zlib from 'zlib'
