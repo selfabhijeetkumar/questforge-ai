@@ -1,6 +1,7 @@
-import pdf from 'pdf-parse'
+﻿import pdf from 'pdf-parse'
 import Tesseract from 'tesseract.js'
 import fs from 'fs'
+import zlib from 'zlib'
 
 /**
  * Normalizes text extracted from documents.
@@ -12,6 +13,62 @@ export function normalizeExtractedText(rawText) {
     .replace(/\r/g, '\n')
     .replace(/[ \t]+/g, ' ')
     .trim()
+}
+
+/**
+ * Fallback stream parser to recover text from raw or compressed PDF streams
+ * when standard PDFJS parser encounters unknown flate methods or non-standard xrefs.
+ */
+export function extractTextFromPdfStreams(buffer) {
+  let text = ''
+  let searchPos = 0
+
+  while (true) {
+    const sIdx = buffer.indexOf('stream', searchPos)
+    if (sIdx === -1) break
+
+    let cStart = sIdx + 6
+    if (buffer[cStart] === 0x0D) cStart++
+    if (buffer[cStart] === 0x0A) cStart++
+
+    const endIdx = buffer.indexOf('endstream', cStart)
+    if (endIdx === -1) break
+
+    let cEnd = endIdx
+    if (cEnd > cStart && buffer[cEnd - 1] === 0x0A) cEnd--
+    if (cEnd > cStart && buffer[cEnd - 1] === 0x0D) cEnd--
+
+    const chunk = buffer.subarray(cStart, cEnd)
+    let dec = ''
+    try {
+      dec = zlib.inflateSync(chunk).toString('latin1')
+    } catch (e1) {
+      try {
+        dec = zlib.inflateRawSync(chunk).toString('latin1')
+      } catch (e2) {
+        dec = chunk.toString('latin1')
+      }
+    }
+
+    // Extract hex-encoded strings <...> Tj
+    const hexMatches = dec.match(/<([0-9A-Fa-f]+)>\s*Tj/g) || []
+    for (const hm of hexMatches) {
+      const hex = hm.replace(/<|>\s*Tj/g, '')
+      try {
+        text += Buffer.from(hex, 'hex').toString('utf8') + ' '
+      } catch (err) {}
+    }
+
+    // Extract literal strings (...) Tj
+    const litMatches = dec.match(/\(([^()]+)\)\s*Tj/g) || []
+    for (const lm of litMatches) {
+      text += lm.replace(/^\(|\)\s*Tj$/g, '') + ' '
+    }
+
+    searchPos = endIdx + 9
+  }
+
+  return normalizeExtractedText(text)
 }
 
 /**
@@ -33,19 +90,21 @@ export function extractStructuredFieldsFromText(text, categoryHint = '') {
 
   const clean = text
 
-  // 1. Full Name detection patterns
+  // 1. Full Name detection patterns (using horizontal whitespace [ \t] to prevent newline multi-line matches)
   let fullName = null
   const namePatterns = [
-    /(?:Name of (?:the )?(?:Candidate|Student|Holder|Applicant|Person)|Full Name|Student Name|Applicant Name|Name)[\s:]+([A-Za-z]+(?:\s+[A-Za-z]+){1,3})/i,
-    /(?:This is to certify that|Certify that|Shri|Kumari|Smt\.|Mr\.|Ms\.)[\s:]+([A-Za-z]+(?:\s+[A-Za-z]+){1,3})/i,
-    /([A-Z][a-z]+ [A-Z][a-z]+(?: [A-Z][a-z]+)?)\s+(?:S\/O|D\/O|Son of|Daughter of)/i
+    /(?:Name of (?:the )?(?:Candidate|Student|Holder|Applicant|Person)|Full Name|Student Name|Applicant Name|Name)[\t :]+([A-Za-z]+(?:[ \t]+[A-Za-z]+){1,3})/i,
+    /(?:This is to certify that|Certify that|Shri|Kumari|Smt\.|Mr\.|Ms\.)[\t :]+([A-Za-z]+(?:[ \t]+[A-Za-z]+){1,3})/i,
+    /([A-Z][a-z]+ [A-Z][a-z]+(?: [A-Z][a-z]+)?)[ \t]+(?:S\/O|D\/O|Son of|Daughter of)/i
   ]
   for (const pat of namePatterns) {
     const match = clean.match(pat)
     if (match && match[1]) {
-      const candidate = match[1].trim()
+      let candidate = match[1].trim()
+      // Strip any accidental capture of subsequent field headers if text lines were merged
+      candidate = candidate.replace(/\s+(?:Date|DOB|Birth|Total|Marks|Income|Roll|Father|Mother|Annual|Percentage).*$/i, '').trim()
       // Filter out false positive headers
-      if (!/(Department|Ministry|Government|University|College|Board|School|Certificate|Authority)/i.test(candidate)) {
+      if (candidate.length > 2 && !/(Department|Ministry|Government|University|College|Board|School|Certificate|Authority)/i.test(candidate)) {
         fullName = candidate
         break
       }
@@ -87,7 +146,7 @@ export function extractStructuredFieldsFromText(text, categoryHint = '') {
   // 4. Academic Marks / Percentage patterns
   let percentageMarks = null
   const marksPatterns = [
-    /(?:Percentage|Aggregate Marks|Marks Obtained|Score|Aggregate)[\s:]*([0-9]{2}(?:\.[0-9]{1,2})?)\s*%/i,
+    /(?:Percentage|Aggregate Marks|Marks Obtained|Score|Aggregate|Total Marks)[\s:]*([0-9]{2}(?:\.[0-9]{1,2})?)\s*%/i,
     /([0-9]{2}\.[0-9]{1,2})\s*%/i,
     /(?:CGPA|CPI)[\s:]*([0-9]\.[0-9]{1,2})/i
   ]
@@ -153,14 +212,22 @@ export async function extractTextFromDocument(fileBuffer, mimetype, originalName
   try {
     if (mimetype === 'application/pdf') {
       method = 'PDF_TEXT_EXTRACTION'
-      const pdfData = await pdf(fileBuffer)
-      extractedText = normalizeExtractedText(pdfData.text || '')
+      try {
+        const pdfData = await pdf(fileBuffer)
+        extractedText = normalizeExtractedText(pdfData.text || '')
+      } catch (pdfErr) {
+        // Fallback: recover digital text from raw or compressed stream operators
+        const fallbackText = extractTextFromPdfStreams(fileBuffer)
+        if (fallbackText && fallbackText.length > 5) {
+          extractedText = fallbackText
+        } else {
+          throw pdfErr
+        }
+      }
 
-      if (extractedText.length > 20) {
-        // High confidence digital PDF extraction
+      if (extractedText.length > 10) {
         confidence = 0.95
       } else {
-        // PDF has little or no selectable digital text (e.g. scanned image inside PDF)
         confidence = 0.20
         errorDetail = 'Digital text extraction returned sparse content. Document may be a scanned or flattened PDF.'
       }
@@ -200,3 +267,4 @@ export async function extractTextFromDocument(fileBuffer, mimetype, originalName
     }
   }
 }
+

@@ -1,6 +1,7 @@
 import { extractTextFromDocument } from '../services/ocrService.js'
 import { extractWithAIOrFallback } from '../services/aiExtractorService.js'
 import { storage } from '../services/storageService.js'
+import { sanitizeFilename, validateFileSignature } from '../utils/securityHelpers.js'
 
 export async function uploadAndProcessDocuments(req, res, next) {
   try {
@@ -28,15 +29,27 @@ export async function uploadAndProcessDocuments(req, res, next) {
     const processedDocuments = []
 
     for (const file of files) {
-      // 1. Text extraction via PDF parser or Tesseract OCR
-      const extractionResult = await extractTextFromDocument(file.buffer, file.mimetype, file.originalname)
+      const safeOriginalName = sanitizeFilename(file.originalname)
 
-      const assignedCategory = categoryMap[file.originalname] || {
+      // Security check: Binary file signature / magic bytes validation
+      const hasValidSignature = validateFileSignature(file.buffer, file.mimetype)
+      if (!hasValidSignature) {
+        return res.status(400).json({
+          status: 'error',
+          statusCode: 400,
+          message: `File "${safeOriginalName}" failed binary signature verification. Content does not match declared ${file.mimetype} structure.`
+        })
+      }
+
+      // 1. Text extraction via PDF parser or Tesseract OCR
+      const extractionResult = await extractTextFromDocument(file.buffer, file.mimetype, safeOriginalName)
+
+      const assignedCategory = categoryMap[file.originalname] || categoryMap[safeOriginalName] || {
         categoryId: 'doc-unassigned',
         categoryName: 'Unassigned Document'
       }
 
-      // 2. Structured entity extraction via AI (or deterministic pattern fallback)
+      // 2. Structured entity extraction via Multi-Provider AI (or deterministic fallback)
       const aiResult = await extractWithAIOrFallback(extractionResult.extractedText, assignedCategory.categoryName)
 
       // 3. Merge extracted fields prioritizing high-confidence values
@@ -53,7 +66,7 @@ export async function uploadAndProcessDocuments(req, res, next) {
 
       // 4. Save to session repository
       const docRecord = storage.saveDocument({
-        originalName: file.originalname,
+        originalName: safeOriginalName,
         mimetype: file.mimetype,
         size: file.size,
         categoryId: assignedCategory.categoryId,
@@ -63,7 +76,8 @@ export async function uploadAndProcessDocuments(req, res, next) {
         extractionConfidence: extractionResult.confidence,
         extractionWarning: extractionResult.warning || null,
         extractionMethod: extractionResult.method,
-        aiExtractionMode: aiResult.mode
+        aiExtractionMode: aiResult.mode,
+        providerInfo: aiResult.providerInfo || null
       })
 
       processedDocuments.push(docRecord)
