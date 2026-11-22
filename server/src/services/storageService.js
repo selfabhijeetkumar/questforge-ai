@@ -15,6 +15,7 @@ class StorageService {
     const id = doc.id || crypto.randomUUID()
     const record = {
       id,
+      userId: doc.userId || null,
       originalName: doc.originalName,
       mimetype: doc.mimetype,
       size: doc.size,
@@ -29,19 +30,26 @@ class StorageService {
     return record
   }
 
-  getDocument(id) {
-    return this.documents.get(id) || null
+  getDocument(id, userId = null) {
+    const doc = this.documents.get(id) || null
+    if (!doc) return null
+    if (doc.userId && (!userId || doc.userId !== userId)) {
+      return null // Scoped to another user
+    }
+    return doc
   }
 
-  updateDocument(id, updates) {
-    const existing = this.documents.get(id)
+  updateDocument(id, updates, userId = null) {
+    const existing = this.getDocument(id, userId)
     if (!existing) return null
     const updated = { ...existing, ...updates, updatedAt: new Date().toISOString() }
     this.documents.set(id, updated)
     return updated
   }
 
-  deleteDocument(id) {
+  deleteDocument(id, userId = null) {
+    const existing = this.getDocument(id, userId)
+    if (!existing) return false
     return this.documents.delete(id)
   }
 
@@ -54,24 +62,31 @@ class StorageService {
     }
     this.audits.set(id, record)
 
-    // Also register or update application in student dashboard
-    this.applications.set(record.scholarshipId, {
-      applicationId: `app-${record.scholarshipId}`,
-      scholarshipId: record.scholarshipId,
-      scholarshipTitle: record.scholarshipTitle,
-      lastAuditId: id,
-      auditStatus: record.overallStatus,
-      uploadedCount: record.uploadedCategories?.length || 0,
-      missingCount: record.missingMandatory?.length || 0,
-      findingsCount: record.findings?.length || 0,
-      lastAuditedAt: record.createdAt
-    })
+    // Also register or update application in student dashboard (for guest / unauthenticated audits)
+    if (!record.userId) {
+      this.applications.set(record.scholarshipId, {
+        applicationId: `app-${record.scholarshipId}`,
+        scholarshipId: record.scholarshipId,
+        scholarshipTitle: record.scholarshipTitle,
+        lastAuditId: id,
+        auditStatus: record.overallStatus,
+        uploadedCount: record.uploadedCategories?.length || 0,
+        missingCount: record.missingMandatory?.length || 0,
+        findingsCount: record.findings?.length || 0,
+        lastAuditedAt: record.createdAt
+      })
+    }
 
     return record
   }
 
-  getAudit(id) {
-    return this.audits.get(id) || null
+  getAudit(id, userId = null) {
+    const audit = this.audits.get(id) || null
+    if (!audit) return null
+    if (audit.userId && (!userId || audit.userId !== userId)) {
+      return null // Scoped to another user
+    }
+    return audit
   }
 
   getAllAudits() {

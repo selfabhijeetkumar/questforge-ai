@@ -64,8 +64,9 @@ export async function uploadAndProcessDocuments(req, res, next) {
         extractionMethod: aiResult.source || extractionResult.method
       }
 
-      // 4. Save to session repository
+      // 4. Save to session repository with user association
       const docRecord = storage.saveDocument({
+        userId: req.user?.id || null,
         originalName: safeOriginalName,
         mimetype: file.mimetype,
         size: file.size,
@@ -96,6 +97,7 @@ export async function uploadAndProcessDocuments(req, res, next) {
 export function updateDocumentCategory(req, res) {
   const { id } = req.params
   const { categoryId, categoryName } = req.body
+  const userId = req.user?.id || null
 
   if (!categoryId || !categoryName) {
     return res.status(400).json({
@@ -105,7 +107,7 @@ export function updateDocumentCategory(req, res) {
     })
   }
 
-  const updated = storage.updateDocument(id, { categoryId, categoryName })
+  const updated = storage.updateDocument(id, { categoryId, categoryName }, userId)
   if (!updated) {
     return res.status(404).json({
       status: 'error',
@@ -122,7 +124,8 @@ export function updateDocumentCategory(req, res) {
 
 export function getDocumentById(req, res) {
   const { id } = req.params
-  const doc = storage.getDocument(id)
+  const userId = req.user?.id || null
+  const doc = storage.getDocument(id, userId)
 
   if (!doc) {
     return res.status(404).json({

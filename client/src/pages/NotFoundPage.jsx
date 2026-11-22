@@ -4,6 +4,17 @@ import { FileQuestion, ArrowLeft, Compass, AlertCircle } from 'lucide-react'
 import { SpatialCard } from '../components/common/SpatialCard'
 
 export function NotFoundPage() {
+  React.useEffect(() => {
+    const meta = document.querySelector('meta[name="robots"]')
+    const originalContent = meta ? meta.getAttribute('content') : 'index, follow'
+    if (meta) {
+      meta.setAttribute('content', 'noindex, nofollow')
+    }
+    return () => {
+      if (meta) meta.setAttribute('content', originalContent)
+    }
+  }, [])
+
   return (
     <div className="min-h-[75vh] flex items-center justify-center px-4 py-16">
       <SpatialCard glow className="max-w-md w-full text-center space-y-6 p-8">

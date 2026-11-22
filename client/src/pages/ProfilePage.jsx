@@ -3,8 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { User, Mail, Shield, Database, Download, Trash2, LogOut, CheckCircle2, AlertCircle, RefreshCw, KeyRound, HardDrive } from 'lucide-react'
 import { SpatialCard } from '../components/common/SpatialCard'
 import { useAuth } from '../context/AuthContext'
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+import { fetchDashboardData, fetchPersistenceStatus } from '../services/api'
 
 export function ProfilePage() {
   const { user, signOut, isConfigured } = useAuth()
@@ -13,8 +12,7 @@ export function ProfilePage() {
   const [purged, setPurged] = useState(false)
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/persistence/status`)
-      .then(res => res.json())
+    fetchPersistenceStatus()
       .then(json => setPersistenceInfo(json.data))
       .catch(() => {})
   }, [])
@@ -25,8 +23,7 @@ export function ProfilePage() {
   }
 
   const handleExportData = () => {
-    fetch(`${API_BASE}/api/dashboard`)
-      .then(res => res.json())
+    fetchDashboardData()
       .then(json => {
         const blob = new Blob([JSON.stringify(json.data, null, 2)], { type: 'application/json' })
         const url = URL.createObjectURL(blob)

@@ -1,0 +1,21 @@
+# QuestForge AI — Production Robots Policy
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /scholarships
+Allow: /privacy
+Allow: /terms
+Allow: /cookies
+Allow: /contact
+
+# Disallow session-specific, audit reports and backend API paths from crawling
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /upload
+Disallow: /analysis
+Disallow: /audit-results/
+Disallow: /report/
+Disallow: /reset-password
+Disallow: /profile
+
+Sitemap: https://questforge.ai/sitemap.xml

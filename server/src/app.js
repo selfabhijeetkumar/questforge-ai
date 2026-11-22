@@ -3,6 +3,7 @@ import cors from 'cors'
 import helmet from 'helmet'
 import { config } from './config/env.js'
 import { apiLimiter } from './middleware/rateLimiter.js'
+import { authenticateUser } from './middleware/authMiddleware.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import healthRoutes from './routes/healthRoutes.js'
 import scholarshipRoutes from './routes/scholarshipRoutes.js'
@@ -32,6 +33,9 @@ app.use(express.urlencoded({ extended: true, limit: '15mb' }))
 
 // Rate limiting on /api routes
 app.use('/api', apiLimiter)
+
+// Cryptographic JWT authentication middleware for all API routes
+app.use('/api', authenticateUser)
 
 // Mount Routes
 app.use('/api', healthRoutes)

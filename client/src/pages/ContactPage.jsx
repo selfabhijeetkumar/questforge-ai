@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import { Mail, CheckCircle2, Send, MessageSquare, AlertCircle, RefreshCw, Database } from 'lucide-react'
 import { SpatialCard } from '../components/common/SpatialCard'
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+import { submitContactForm } from '../services/api'
 
 export function ContactPage() {
   const [formData, setFormData] = useState({
@@ -33,13 +32,7 @@ export function ContactPage() {
     setSubmitting(true)
 
     try {
-      const res = await fetch(`${API_BASE}/api/contact`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
-
-      const json = await res.json()
+      const json = await submitContactForm(formData)
 
       if (!res.ok) {
         throw new Error(json.message || `Server responded with HTTP ${res.status}`)

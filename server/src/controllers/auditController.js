@@ -5,7 +5,7 @@ import { supabaseService } from '../services/supabaseService.js'
 
 export async function runAudit(req, res) {
   const { scholarshipId, documentIds, manualDocuments } = req.body
-  const userId = req.headers['x-user-id'] || null
+  const userId = req.user?.id || null
 
   if (!scholarshipId) {
     return res.status(400).json({
@@ -24,10 +24,10 @@ export async function runAudit(req, res) {
     })
   }
 
-  // Retrieve documents from storage or manual payload
+  // Retrieve documents from storage or manual payload with user authorization check
   let documents = []
   if (Array.isArray(documentIds) && documentIds.length > 0) {
-    documents = documentIds.map(id => storage.getDocument(id)).filter(Boolean)
+    documents = documentIds.map(id => storage.getDocument(id, userId)).filter(Boolean)
   } else if (Array.isArray(manualDocuments) && manualDocuments.length > 0) {
     documents = manualDocuments
   }
@@ -46,7 +46,7 @@ export async function runAudit(req, res) {
 
 export async function getAuditById(req, res) {
   const { id } = req.params
-  const userId = req.headers['x-user-id'] || null
+  const userId = req.user?.id || null
   const audit = await supabaseService.getAudit(id, userId)
 
   if (!audit) {
@@ -65,7 +65,7 @@ export async function getAuditById(req, res) {
 
 export async function getDashboard(req, res) {
   try {
-    const userId = req.headers['x-user-id'] || null
+    const userId = req.user?.id || null
     const dashboard = await supabaseService.getDashboardSummary(userId)
     res.status(200).json({
       status: 'success',
@@ -83,7 +83,7 @@ export async function getDashboard(req, res) {
 export async function getReport(req, res) {
   try {
     const { id } = req.params
-    const userId = req.headers['x-user-id'] || null
+    const userId = req.user?.id || null
     const audit = await supabaseService.getAudit(id, userId)
 
     if (!audit) {

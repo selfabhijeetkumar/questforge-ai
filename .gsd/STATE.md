@@ -56,8 +56,21 @@ Demonstration Readiness: Production-Ready MVP + Cinematic Spatial 3D + Multi-Pro
   - `/profile` (User profile management, GDPR JSON data export, and session cache purge)
   - `ProtectedRoute` component guarding authenticated areas
 - [x] Security Hardening: Magic-byte inspection (%PDF / \x89PNG), path traversal sanitization, Helmet/CORS protection, and zero-secret API responses.
+- [x] Backend Authorization & User Isolation (Phase 12): Cryptographic Bearer JWT verification via Supabase Auth (`authMiddleware.js`), client-supplied `x-user-id` stripped, server-side data scoping on all audit/report/dashboard/document endpoints, and volatile memory scoping. Verified with 20/20 cross-user test suite.
 - [x] Live Multi-Provider Failover: Seamless transition from Gemini (billing blocked) to Groq (1.1s) and NVIDIA NIM.
 - [x] Automated Testing:
+  - 31/31 backend unit & scenario tests passing (`npm --prefix server test`)
+  - 27/27 live API endpoints passing (`verify_all_api_endpoints.js`)
+  - 17/17 Supabase live cloud persistence & RLS tests passing (`verify_supabase_live.js`)
+  - 20/20 Cross-User authorization & IDOR isolation tests passing (`verify_backend_authorization.js`)
+- [x] Production Deployment Preparation (Phase 12 Deliverables):
+  - `PRODUCTION_DEPLOYMENT_REPORT.md` (Hosting architecture, free tier evaluation, build commands)
+  - `PRODUCTION_SECURITY_AUDIT.md` (Authorization verification, RLS policies, zero-disk retention audit)
+  - `DOMAIN_CONFIGURATION_GUIDE.md` (Step-by-step DNS, CNAME, HTTPS, CORS, and Supabase Auth configuration)
+  - `PRODUCTION_ENV_TEMPLATE.md` (Clean environment templates without secrets)
+  - `FINAL_LAUNCH_CHECKLIST.md` (Pre-launch release gates and classification)
+  - `robots.txt`, `sitemap.xml`, and dynamic 404 `noindex` tag created.
+- [x] Production Build Verification: Vite 6 builds 27 code-split chunks in 5.6s with 0 secret keys leaked.
   - 31/31 backend unit & integration tests passing (`npm --prefix server test`).
   - 27/27 live API endpoint tests passing (`node scripts/verify_all_apis_live.js`).
 - [x] Production Build: Compiling cleanly into 27 code-split chunks (`client/dist/`).

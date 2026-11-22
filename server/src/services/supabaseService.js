@@ -35,6 +35,22 @@ export class SupabaseService {
     return Boolean(this.initialized && this.client)
   }
 
+  /**
+   * Verifies a Supabase JWT token and returns the authentic user object.
+   * Validates cryptographic signature and session validity with Supabase Auth.
+   * Never trusts client-supplied user IDs without cryptographic verification.
+   */
+  async getUserFromToken(token) {
+    if (!this.isConfigured() || !token) return null
+    try {
+      const { data: { user }, error } = await this.client.auth.getUser(token)
+      if (error || !user) return null
+      return user
+    } catch (err) {
+      return null
+    }
+  }
+
   getStatus() {
     return {
       isConfigured: this.isConfigured(),
@@ -109,6 +125,7 @@ export class SupabaseService {
       return {
         ...auditData,
         id: session.id,
+        userId: session.user_id || userId,
         createdAt: session.created_at
       }
     } catch (err) {
@@ -123,11 +140,7 @@ export class SupabaseService {
    */
   async getAudit(auditId, userId = null) {
     if (!this.isConfigured()) {
-      const memoryAudit = storageService.getAudit(auditId)
-      if (memoryAudit && userId && memoryAudit.userId && memoryAudit.userId !== userId) {
-        return null // Authorization mismatch
-      }
-      return memoryAudit
+      return storageService.getAudit(auditId, userId)
     }
 
     try {
@@ -140,14 +153,19 @@ export class SupabaseService {
         `)
         .eq('id', auditId)
 
-      if (userId) {
-        query = query.eq('user_id', userId)
-      }
-
       const { data, error } = await query.single()
       if (error || !data) {
-        // Fallback check in local memory
-        return storageService.getAudit(auditId)
+        // Fallback check in local memory only if allowed
+        return storageService.getAudit(auditId, userId)
+      }
+
+      // STRICT USER ISOLATION CHECK:
+      // If the cloud record belongs to a registered user:
+      if (data.user_id) {
+        // Caller must be authenticated with the exact matching user ID
+        if (!userId || data.user_id !== userId) {
+          return null // Unauthorized access denied
+        }
       }
 
       return {
@@ -175,7 +193,7 @@ export class SupabaseService {
       }
     } catch (err) {
       console.warn('[SupabaseService] Error fetching audit from cloud:', err.message)
-      return storageService.getAudit(auditId)
+      return storageService.getAudit(auditId, userId)
     }
   }
 
@@ -188,17 +206,19 @@ export class SupabaseService {
       return storageService.getDashboardSummary()
     }
 
+    // Security: Unauthenticated users should only see their guest session applications,
+    // NEVER the collective cloud audit sessions across all registered users!
+    if (!userId) {
+      return storageService.getDashboardSummary()
+    }
+
     try {
-      let query = this.client
+      const { data: sessions, error } = await this.client
         .from('audit_sessions')
         .select('*')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
 
-      if (userId) {
-        query = query.eq('user_id', userId)
-      }
-
-      const { data: sessions, error } = await query
       if (error || !sessions) {
         return storageService.getDashboardSummary()
       }
