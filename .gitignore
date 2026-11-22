@@ -45,3 +45,10 @@ screenshot.png
 # Chrome headless temp profile
 .tmp-chrome/
 .chrome-headless/
+
+# Database Backups & Dumps
+backups/
+*.dump
+*.sql.gpg
+*.tar.gz
+
