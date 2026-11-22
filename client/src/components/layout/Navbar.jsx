@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { ShieldCheck, Compass, UploadCloud, LayoutDashboard, Menu, X, Info } from 'lucide-react'
+import { ShieldCheck, Compass, UploadCloud, LayoutDashboard, Menu, X, Info, Cpu } from 'lucide-react'
 import { Badge } from '../common/Badge'
 
 export function Navbar() {
@@ -58,6 +58,14 @@ export function Navbar() {
 
           {/* Right Action CTA */}
           <div className="hidden md:flex items-center space-x-3">
+            <Link
+              to="/about"
+              className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-navy-900 hover:bg-navy-800 border border-slate-800 hover:border-slate-700 transition-colors"
+              title="Multi-Provider AI Status & Failover"
+            >
+              <Cpu className="w-3.5 h-3.5 text-teal-400" />
+              <span className="hidden lg:inline">AI Status</span>
+            </Link>
             <Link
               to="/scholarships"
               className="inline-flex items-center px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 hover:bg-brand-500 text-white border border-brand-500 transition-colors shadow-sm"

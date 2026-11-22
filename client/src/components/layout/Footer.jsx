@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Shield, BookOpen, ExternalLink } from 'lucide-react'
+import { Shield, BookOpen, ExternalLink, Cpu } from 'lucide-react'
 
 export function Footer() {
   return (
@@ -88,7 +88,10 @@ export function Footer() {
         <div className="border-t border-slate-800/80 pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 gap-4">
           <p>© {new Date().getFullYear()} QuestForge AI. Academic SEC Project. All demonstration data is synthetic.</p>
           <div className="flex items-center space-x-4">
-            <span className="inline-flex items-center text-teal-400">
+            <Link to="/about" className="inline-flex items-center text-teal-400 hover:text-teal-300 transition-colors">
+              <Cpu className="w-3.5 h-3.5 mr-1" /> Multi-AI Failover Status
+            </Link>
+            <span className="inline-flex items-center text-slate-400">
               <Shield className="w-3.5 h-3.5 mr-1" /> Client-Side Privacy First
             </span>
           </div>

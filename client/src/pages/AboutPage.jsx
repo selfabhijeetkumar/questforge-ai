@@ -4,6 +4,7 @@ import { Shield, Cpu, BookOpen, Layers, CheckCircle2, Lock } from 'lucide-react'
 import { Card } from '../components/common/Card'
 import { Badge } from '../components/common/Badge'
 import { Button } from '../components/common/Button'
+import { AIStatusPanel } from '../components/AIStatusPanel'
 
 export function AboutPage() {
   return (
@@ -126,6 +127,9 @@ export function AboutPage() {
           </div>
         </div>
       </div>
+
+      {/* Live AI Provider Status & Failover */}
+      <AIStatusPanel />
 
       {/* CTA */}
       <div className="flex items-center justify-between p-6 bg-navy-900 border border-slate-800 rounded-lg">
