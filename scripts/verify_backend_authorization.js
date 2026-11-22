@@ -25,21 +25,25 @@ const clientAuth = createClient(supabaseUrl, supabaseAnonKey, {
 })
 
 const PORT = 5005
-const BASE_URL = `http://localhost:${PORT}`
+const BASE_URL = (process.env.TARGET_API_URL || `http://localhost:${PORT}`).replace(/\/+$/, '')
 
 async function runAuditSecuritySuite() {
   console.log('========================================================================')
   console.log(' QUESTFORGE AI — BACKEND AUTHORIZATION & CROSS-USER API SECURITY AUDIT')
-  console.log(' Target Backend: Express + Supabase Cloud (bwllksfjjxmumrrqaifa)')
+  console.log(` Target Backend: ${BASE_URL} (Supabase: ${supabaseUrl})`)
   console.log('========================================================================\n')
 
   let server
-  await new Promise(resolve => {
-    server = app.listen(PORT, () => {
-      console.log(`[Test Server] Listening on ${BASE_URL}`)
-      resolve()
+  if (!process.env.TARGET_API_URL) {
+    await new Promise(resolve => {
+      server = app.listen(PORT, () => {
+        console.log(`[Test Server] Listening on ${BASE_URL}`)
+        resolve()
+      })
     })
-  })
+  } else {
+    console.log(`[Hosted Target] Running live authorization tests against: ${BASE_URL}`)
+  }
 
   const results = []
   function logResult(testId, name, pass, detail = '') {
@@ -340,8 +344,10 @@ async function runAuditSecuritySuite() {
       console.log(`[Cleanup] Deleted synthetic user Beta (${userB.id.slice(0, 8)}...)`)
     }
 
-    server.close()
-    console.log('[Test Server] Stopped.')
+    if (server) {
+      server.close()
+      console.log('[Test Server] Stopped.')
+    }
   }
 
   console.log('\n========================================================================')
